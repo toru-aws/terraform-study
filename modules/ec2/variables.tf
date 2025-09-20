@@ -12,3 +12,8 @@ variable "key_name" {
   description = "作成済みSSHキーペア名"
   type        = string
 }
+
+variable "my_ip" {
+  description = "管理者アクセス用固定IP"
+  type        = string
+}

@@ -6,7 +6,8 @@ module "ec2" {
   source           = "./modules/ec2"
   vpc_id           = module.vpc.aws_vpc_id
   public_subnet_id = module.vpc.public_subnet1_id
-  key_name         = "toru-aws-key" # 作成済みキーペア名
+  key_name         = var.key_name # 作成済みキーペア名
+  my_ip            = var.my_ip
 }
 
 output "ec2_public_ip" {
@@ -38,7 +39,7 @@ module "alb" {
 module "cloudwatch" {
   source             = "./modules/cloudwatch"
   ec2_id             = module.ec2.ec2_id
-  notification_email = "29oishi4@gmail.com" # ←あなたのメールアドレス
+  notification_email = var.notification_email #ハードコードから変数に変更
 }
 
 module "waf" {
@@ -46,9 +47,8 @@ module "waf" {
   alb_arn        = module.alb.alb_arn # ← ここを修正
   log_group_name = "/aws-waf-logs/aws-study"
 }
-
 # WAF と ALB を関連付けるリソース
 resource "aws_wafv2_web_acl_association" "alb_waf" {
-  resource_arn = module.alb.alb_arn       # ALBモジュールが出力した値
-  web_acl_arn  = module.waf.web_acl_arn   # WAFモジュールが出力した値
+  resource_arn = module.alb.alb_arn     # ALBモジュールが出力した値
+  web_acl_arn  = module.waf.web_acl_arn # WAFモジュールが出力した値
 }

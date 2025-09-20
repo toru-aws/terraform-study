@@ -6,4 +6,5 @@ variable "ec2_id" {
 variable "notification_email" {
   description = "アラート通知先メールアドレス"
   type        = string
+  sensitive   = true
 }

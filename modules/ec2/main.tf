@@ -19,7 +19,7 @@ resource "aws_security_group" "ec2_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["219.104.129.44/32"] # 自分のIPからSSH
+    cidr_blocks = [var.my_ip]   #ハードコードから変数に変更
   }
 
   ingress {

@@ -39,19 +39,19 @@ resource "aws_lb" "aws-study-alb" {
 # ターゲットグループ
 resource "aws_lb_target_group" "aws-study-tg" {
   name     = "aws-study-tg"
-  port     = 80
+  port     = 8080
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
-  health_check {
-    path                = "/"
-    protocol            = "HTTP"
-    matcher             = "200"
-    interval            = 30
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-    timeout             = 5
-  }
+health_check {
+  path     = "/"
+  protocol = "HTTP"
+  matcher  = "200-299"  #Provider互換の為、範囲のみ変更。ブロック形式に無し
+  interval            = 30
+  healthy_threshold   = 3
+  unhealthy_threshold = 3
+  timeout             = 5
+}
 
   tags = {
     Name = "aws-study-tg"
@@ -73,5 +73,5 @@ resource "aws_lb_listener" "aws-study-listener" {
 resource "aws_lb_target_group_attachment" "ec2_attach" {
   target_group_arn = aws_lb_target_group.aws-study-tg.arn
   target_id        = var.ec2_id   # ルートから module.alb に渡す
-  port             = 80
+  port             = 8080
 }

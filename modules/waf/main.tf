@@ -31,13 +31,19 @@ resource "aws_iam_role_policy" "waf_logging_policy_doc" {
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams"
+          "logs:CreateLogStream",    # 追記: LogGroup 内のストリーム作成権限
+          "logs:PutLogEvents"       # 追記: LogGroup へのログ書き込み権限
         ]
-        Resource = "*"
+        #修正: Resource="*" を LogGroup のみに限定
+        Resource = "${aws_cloudwatch_log_group.waf.arn}:*"  # 追記: LogGroup 内すべてのストリーム
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:DescribeLogGroups",   # 追記: LogGroup 情報参照
+          "logs:DescribeLogStreams"   # 追記: ストリーム情報参照
+        ]
+        Resource = aws_cloudwatch_log_group.waf.arn  # 修正:LogGroup のみに限定
       }
     ]
   })
