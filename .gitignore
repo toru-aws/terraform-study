@@ -1,0 +1,12 @@
+# Terraform local state
+*.tfstate
+*.tfstate.*
+terraform.tfstate
+terraform.tfstate.backup
+
+# Terraform working dir
+.terraform/
+
+# Sensitive vars
+*.tfvars
+terraform.tfvars
