@@ -25,3 +25,4 @@ variable "my_ip" {
   description = "管理者アクセス用固定IP"
   type        = string
 }
+

@@ -11,3 +11,11 @@ output "ec2_id" {
 output "ec2_sg_id" {
   value = aws_security_group.ec2_sg.id
 }
+
+output "ec2_sg_ingress" {
+  value = aws_security_group.ec2_sg.ingress
+}
+
+output "ec2_sg_egress" {
+  value = aws_security_group.ec2_sg.egress
+}
