@@ -9,7 +9,7 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# EC2用セキュリティグループ
+# EC2用セキュリティグループ　#テストコードを入れる
 resource "aws_security_group" "ec2_sg" {
   name        = "main-ec2-sg"
   description = "Allow SSH and HTTP access"
@@ -48,7 +48,7 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-# EC2 インスタンス
+# EC2 インスタンス　#テストコードを入れる
 resource "aws_instance" "main_ec2" {
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = "t2.micro"

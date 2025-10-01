@@ -1,6 +1,6 @@
 # modules/vpc/main.tf
 
-# VPC
+# VPC #テストコードを入れる
 resource "aws_vpc" "aws_study_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -11,7 +11,7 @@ resource "aws_vpc" "aws_study_vpc" {
   }
 }
 
-# パブリックサブネット
+# パブリックサブネット　#テストコードを入れる
 resource "aws_subnet" "MyPublicSubnet1" {
   vpc_id                  = aws_vpc.aws_study_vpc.id
   cidr_block              = "10.0.1.0/24"

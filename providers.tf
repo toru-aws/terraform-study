@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 6.12.0" # ← WAF Logging 用に必須
+      version = ">= 6.14.1" # ← WAF Logging 用に必須
     }
   }
 }
