@@ -23,16 +23,13 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION   : ap-northeast-1
 
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}/terraform
-
     steps:
      - name: Checkout repository
        uses: actions/checkout@v5
 
-     - name: Check Terraform folder
+     - name: Check repository structure
        run: ls -R ${{ github.workspace }}
+       working-directory: ${{ github.workspace }}
 
      - name: Setup Terraform
        uses: hashicorp/setup-terraform@v2
