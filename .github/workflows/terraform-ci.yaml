@@ -31,6 +31,9 @@ jobs:
      - name: Checkout repository
        uses: actions/checkout@v5
 
+     - name: Check Terraform folder
+       run: ls -R ${{ github.workspace }}
+
      - name: Setup Terraform
        uses: hashicorp/setup-terraform@v2
        with:
