@@ -25,7 +25,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ${{ github.workspace }}/terraform
 
     steps:
      - name: Checkout repository
