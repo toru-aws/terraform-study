@@ -77,9 +77,10 @@ run "ec2_sg_test" {
   }
 }
 
-variables {
-  vpc_id           = "vpc-xxxxxxxx"
-  public_subnet_id = "subnet-xxxxxxxx"
-  key_name         = "my-keypair"
-  my_ip            = "1.2.3.4/32"
-}
+  variables {
+    vpc_id           = "vpc-dummy"
+    public_subnet_id = "subnet-dummy"
+    my_ip            = "1.2.3.4/32"
+    key_name         = "my-keypair-dummy"
+  }
+  
