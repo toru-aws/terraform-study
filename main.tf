@@ -30,13 +30,13 @@ module "rds" {
 }
 
 module "alb" {
-  source            = "./modules/alb"
-  vpc_id            = module.vpc.aws_vpc_id
+  source = "./modules/alb"
+  vpc_id = module.vpc.aws_vpc_id
   public_subnet_ids = [
     module.vpc.public_subnets["subnet1"].id,
     module.vpc.public_subnets["subnet2"].id
   ]
-    ec2_id            = module.ec2.ec2_id  
+  ec2_id = module.ec2.ec2_id
 }
 
 module "cloudwatch" {
