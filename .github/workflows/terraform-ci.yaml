@@ -1,35 +1,83 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Terraform CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    paths:
+     - 'terraform/**/*.tf'
+     - 'terraform/**.tftest.hcl'
+     - '.github/workflows/*.yaml'
+  
+  push:
+    branches:
+      - main
+    paths:
+     - 'terraform/**/*.tf'
+     - 'terraform/**.tftest.hcl'
+     - '.github/workflows/*.yaml'
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  terraform:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID    : ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      DB_PASSWORD          : ${{ secrets.DB_PASSWORD }}
+      DB_USERNAME          : ${{ secrets.DB_USERNAME }}
+      NOTIFICATION_EMAIL   : ${{ secrets.NOTIFICATION_EMAIL }}
+      KEY_NAME             : ${{ secrets.KEY_NAME }}
+      MY_IP                : ${{ secrets.MY_IP }}
+      AWS_DEFAULT_REGION   : ap-northeast-1
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+     - name: Checkout repository
+       uses: actions/checkout@v5
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+     - name: Setup Terraform
+       uses: hashicorp/setup-terraform@v2
+       with:
+         terraform_version: '1.13.3' 
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-          
+     - name: Terraform init
+       run: terraform init
+   
+     - name: Terraform fmt
+       run: terraform fmt -check
+
+     - name: Terraform validate
+       run: terraform validate
+   
+     - name: Run Terraform tests
+       run: |
+         terraform test \
+           -var "db_username=${{ secrets.DB_USERNAME }}" \
+           -var "db_password=${{ secrets.DB_PASSWORD }}" \
+           -var "vpc_id=vpc-dummy" \
+           -var "public_subnet_id=subnet-dummy" \
+           -var "key_name=my-keypair-dummy" \
+           -var "my_ip=1.2.3.4/32"
+
+     - name: Terraform plan
+       if: github.event_name == 'pull_request'
+       run: |
+         terraform plan \
+           -var "db_username=${{ secrets.DB_USERNAME }}" \
+           -var "db_password=${{ secrets.DB_PASSWORD }}" \
+           -var "vpc_id=vpc-dummy" \
+           -var "public_subnet_id=subnet-dummy" \
+           -var "key_name=my-keypair-dummy" \
+           -var "my_ip=1.2.3.4/32" \
+           -var "notification_email=my-mail-dummy"
+
+     - name: Terraform apply
+       if: github.event_name == 'push'
+       run: |
+         terraform apply -auto-approve \
+           -var "db_username=${{ secrets.DB_USERNAME }}" \
+           -var "db_password=${{ secrets.DB_PASSWORD }}" \
+           -var "key_name=${{ secrets.KEY_NAME }}" \
+           -var "my_ip=${{ secrets.MY_IP }}" \
+           -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true

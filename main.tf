@@ -5,7 +5,7 @@ module "vpc" {
 module "ec2" {
   source           = "./modules/ec2"
   vpc_id           = module.vpc.aws_vpc_id
-  public_subnet_id = module.vpc.public_subnet1_id
+  public_subnet_id = module.vpc.public_subnets["subnet1"].id
   key_name         = var.key_name # 作成済みキーペア名
   my_ip            = var.my_ip
 }
@@ -30,10 +30,13 @@ module "rds" {
 }
 
 module "alb" {
-  source            = "./modules/alb"
-  vpc_id            = module.vpc.aws_vpc_id
-  public_subnet_ids = [module.vpc.public_subnet1_id, module.vpc.public_subnet2_id]
-  ec2_id            = module.ec2.ec2_id
+  source = "./modules/alb"
+  vpc_id = module.vpc.aws_vpc_id
+  public_subnet_ids = [
+    module.vpc.public_subnets["subnet1"].id,
+    module.vpc.public_subnets["subnet2"].id
+  ]
+  ec2_id = module.ec2.ec2_id
 }
 
 module "cloudwatch" {

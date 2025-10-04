@@ -9,7 +9,6 @@ variable "db_password" {
   sensitive   = true
 }
 
-# root/variables.tf に追加
 variable "key_name" {
   description = "EC2で使用するSSHキーペア名"
   type        = string
@@ -26,3 +25,12 @@ variable "my_ip" {
   type        = string
 }
 
+variable "vpc_id" {
+  description = "VPC ID "
+  type        = string
+}
+
+variable "public_subnet_id" {
+  description = "Public Subnet ID"
+  type        = string
+}
