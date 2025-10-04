@@ -70,3 +70,7 @@ jobs:
            -var "public_subnet_id=subnet-dummy" \
            -var "key_name=my-keypair-dummy" \
            -var "my_ip=1.2.3.4/32"
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
