@@ -43,23 +43,30 @@ jobs:
        run: terraform validate
    
      - name: Run Terraform tests
-       run: terraform test \
-         -var "db_password=${DB_PASSWORD}" \
-        -var "vpc_id=vpc-dummy" \
-        -var "public_subnet_id=subnet-dummy" \
-        -var "key_name=my-keypair-dummy" \
-        -var "my_ip=1.2.3.4/32"
+       run: |
+         terraform test \
+           -var "db_password=${DB_PASSWORD}" \
+           -var "vpc_id=vpc-dummy" \
+           -var "public_subnet_id=subnet-dummy" \
+           -var "key_name=my-keypair-dummy" \
+           -var "my_ip=1.2.3.4/32"
 
      - name: Terraform plan
        if: github.event_name == 'pull_request'
-       run: terraform plan \
-         -var "db_password=${DB_PASSWORD}" \
-         -var "vpc_id=vpc-dummy" \
-         -var "public_subnet_id=subnet-dummy" \
-         -var "key_name=my-keypair-dummy" \
-         -var "my_ip=1.2.3.4/32"
+       run: |
+         terraform plan \
+           -var "db_password=${DB_PASSWORD}" \
+           -var "vpc_id=vpc-dummy" \
+           -var "public_subnet_id=subnet-dummy" \
+           -var "key_name=my-keypair-dummy" \
+           -var "my_ip=1.2.3.4/32"
 
      - name: Terraform apply
        if: github.event_name == 'push'
-       run: terraform apply -auto-approve\
-         -var "db_password=${DB_PASSWORD}"
+       run: |
+         terraform apply -auto-approve \
+           -var "db_password=${DB_PASSWORD}" \
+           -var "vpc_id=vpc-dummy" \
+           -var "public_subnet_id=subnet-dummy" \
+           -var "key_name=my-keypair-dummy" \
+           -var "my_ip=1.2.3.4/32"
