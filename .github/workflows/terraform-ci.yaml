@@ -45,7 +45,8 @@ jobs:
      - name: Run Terraform tests
        run: |
          terraform test \
-           -var "db_password=${DB_PASSWORD}" \
+           -var "db_username=${{ secrets.DB_USERNAME }}" \
+           -var "db_password=${{ secrets.DB_PASSWORD }}" \
            -var "vpc_id=vpc-dummy" \
            -var "public_subnet_id=subnet-dummy" \
            -var "key_name=my-keypair-dummy" \
@@ -55,7 +56,8 @@ jobs:
        if: github.event_name == 'pull_request'
        run: |
          terraform plan \
-           -var "db_password=${DB_PASSWORD}" \
+           -var "db_username=${{ secrets.DB_USERNAME }}" \
+           -var "db_password=${{ secrets.DB_PASSWORD }}" \
            -var "vpc_id=vpc-dummy" \
            -var "public_subnet_id=subnet-dummy" \
            -var "key_name=my-keypair-dummy" \
@@ -65,7 +67,8 @@ jobs:
        if: github.event_name == 'push'
        run: |
          terraform apply -auto-approve \
-           -var "db_password=${DB_PASSWORD}" \
+           -var "db_username=${{ secrets.DB_USERNAME }}" \
+           -var "db_password=${{ secrets.DB_PASSWORD }}" \
            -var "vpc_id=vpc-dummy" \
            -var "public_subnet_id=subnet-dummy" \
            -var "key_name=my-keypair-dummy" \
