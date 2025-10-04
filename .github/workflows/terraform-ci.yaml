@@ -69,10 +69,6 @@ jobs:
          terraform apply -auto-approve \
            -var "db_username=${{ secrets.DB_USERNAME }}" \
            -var "db_password=${{ secrets.DB_PASSWORD }}" \
-           -var "vpc_id=vpc-dummy" \
-           -var "public_subnet_id=subnet-dummy" \
-           -var "key_name=my-keypair-dummy" \
-           -var "my_ip=1.2.3.4/32"
 
 concurrency:
   group: terraform-${{ github.ref }}
