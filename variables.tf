@@ -26,11 +26,13 @@ variable "my_ip" {
 }
 
 variable "vpc_id" {
+  description = "VPC ID "
   type    = string
   default = "vpc-dummy"
 }
 
 variable "public_subnet_id" {
+  description = "Public Subnet ID"
   type    = string
   default = "subnet-dummy"
 }
