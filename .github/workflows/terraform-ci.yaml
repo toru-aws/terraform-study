@@ -6,7 +6,8 @@ on:
      - 'terraform/**/*.tf'
      - 'terraform/**.tftest.hcl'
      - '.github/workflows/*.yaml'
-  
+     - 'terraform/modules/**/*.tf'
+
   push:
     branches:
       - main
