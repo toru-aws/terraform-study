@@ -78,6 +78,7 @@ jobs:
            -var "my_ip=${{ secrets.MY_IP }}" \
            -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
 
+           
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
