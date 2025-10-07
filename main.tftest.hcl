@@ -19,7 +19,7 @@ run "vpc_publicsubnet_test" {
   }
 
 
- assert {
+  assert {
     condition     = output.public_subnets.subnet1.cidr == "10.0.1.0/24"
     error_message = "PublicSubnet1のCIDRが期待と異なります"
   }
@@ -44,12 +44,12 @@ run "ec2_sg_test" {
     source = "./modules/ec2"
   }
 
- # SSHアクセス（ポート22）が設定されているか確認
+  # SSHアクセス（ポート22）が設定されているか確認
   assert {
     condition = length([
       for rule in output.ec2_sg_ingress : rule
-      if rule.from_port == 22 
-      && rule.protocol == "tcp" 
+      if rule.from_port == 22
+      && rule.protocol == "tcp"
       && contains(rule.cidr_blocks, var.my_ip)
     ]) == 1
     error_message = "SSH ingressルールが正しくありません"
@@ -59,8 +59,8 @@ run "ec2_sg_test" {
   assert {
     condition = length([
       for rule in output.ec2_sg_ingress : rule
-      if rule.from_port == 80 
-      && rule.protocol == "tcp" 
+      if rule.from_port == 80
+      && rule.protocol == "tcp"
       && contains(rule.cidr_blocks, "0.0.0.0/0")
     ]) == 1
     error_message = "HTTP ingressルールが正しくありません"
@@ -70,7 +70,7 @@ run "ec2_sg_test" {
   assert {
     condition = length([
       for rule in output.ec2_sg_egress : rule
-      if rule.protocol == "-1" 
+      if rule.protocol == "-1"
       && contains(rule.cidr_blocks, "0.0.0.0/0")
     ]) > 0
     error_message = "Egressルールが正しくありません"
@@ -78,8 +78,9 @@ run "ec2_sg_test" {
 }
 
 variables {
-  vpc_id          = "vpc-xxxxxxxx"
-  public_subnet_id = "subnet-xxxxxxxx"
-  key_name        = "my-keypair"
-  my_ip           = "1.2.3.4/32"
+  vpc_id             = "vpc-dummy"
+  public_subnet_id   = "subnet-dummy"
+  my_ip              = "1.2.3.4/32"
+  key_name           = "my-keypair-dummy"
+  notification_email = "my-mail-dummy"
 }

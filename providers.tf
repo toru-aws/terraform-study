@@ -10,6 +10,5 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ap-northeast-1" # 東京リージョン
-  profile = "default"        # aws configure で設定したプロファイル
+  region = "ap-northeast-1" # 東京リージョン
 }
