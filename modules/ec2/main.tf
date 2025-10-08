@@ -61,17 +61,3 @@ resource "aws_instance" "main_ec2" {
     Name = "main-ec2"
   }
 }
-
-# EC2 インスタンス　#テストコードを入れる
-resource "aws_instance" "sub_ec2" {
-  ami                         = data.aws_ami.amazon_linux.id
-  instance_type               = "t2.micro"
-  subnet_id                   = var.public_subnet_id
-  vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
-  associate_public_ip_address = true
-  key_name                    = var.key_name 
-
-  tags = {
-    Name = "sub-ec2"
-  }
-}
