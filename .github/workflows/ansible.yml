@@ -1,9 +1,31 @@
-name: Test Workflow
+name: Run Ansible on EC2
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  ansible_job:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "Hello Actions"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Run Ansible Playbook
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          echo "$EC2_SSH_KEY" > key.pem
+          chmod 600 key.pem
+          ansible-playbook \
+            -i "43.207.87.237," \
+            -u ec2-user \
+            --private-key key.pem \
+            Ansible/playbook.yml
