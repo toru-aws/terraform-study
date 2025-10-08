@@ -1,7 +1,9 @@
 ---
-- name: Test connection to EC2
-  hosts: web
+- name: Install Java on EC2
+  hosts: all
+  become: yes
   tasks:
-    - name: Ping test
-      ansible.builtin.ping:
-
+    - name: Ensure Java is installed
+      yum:
+        name: java-11-openjdk
+        state: present
