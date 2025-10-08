@@ -39,3 +39,5 @@ jobs:
         run: |
           cd Ansible
           ansible-playbook -i inventory.ini playbook.yml
+
+          
