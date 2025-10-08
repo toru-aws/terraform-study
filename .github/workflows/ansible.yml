@@ -1,42 +1,9 @@
-name: Ansible Test on EC2
-
+name: Test Workflow
 on:
-  workflow_dispatch:  # 手動実行用
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ansible jq terraform
-
-      - name: Create SSH key file
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Get Terraform outputs
-        run: |
-          cd terraform
-          terraform init -input=false
-          terraform output -json > ../Ansible/terraform_output.json
-
-      - name: Generate Ansible inventory
-        run: |
-          cd Ansible
-          IP=$(jq -r '.ec2_public_ip.value' terraform_output.json)
-          echo "[web]" > inventory.ini
-          echo "$IP ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
-
-      - name: Run Ansible playbook
-        run: |
-          cd Ansible
-          ansible-playbook -i inventory.ini playbook.yml
-      
+      - run: echo "Hello World"
