@@ -1,9 +1,9 @@
 ---
-- name: Install Java on EC2
+- name: Install Java 21 on EC2
   hosts: all
   become: true
   tasks:
-    - name: Ensure Java is installed
-      yum:
-        name: java-11-openjdk
+    - name: Ensure Java 21 is installed
+      dnf:
+        name: java-21-amazon-corretto-devel.x86_64
         state: present
