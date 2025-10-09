@@ -21,8 +21,8 @@ jobs:
       - name: Add EC2 host key to known_hosts
         shell: bash
         run: |
-          mkdir -p $HOME/.ssh
-          ssh-keyscan -H 13.115.144.46 >> $HOME/.ssh/known_hosts
+          install -d -m 700 ~/.ssh
+          ssh-keyscan -H 13.115.144.46 >> ~/.ssh/known_hosts
        
       - name: Run Ansible Playbook
         env:
