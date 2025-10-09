@@ -1,7 +1,7 @@
 ---
 - name: Install Java on EC2
   hosts: all
-  become: yes
+  become: true
   tasks:
     - name: Ensure Java is installed
       yum:
