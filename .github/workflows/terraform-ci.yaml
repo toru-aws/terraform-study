@@ -62,14 +62,17 @@ jobs:
             -var "my_ip=${{ secrets.MY_IP }}" \
             -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
 
-
       - name: Get EC2 public IP
         id: get-ip
-        run: echo "ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
+        run: |
+          IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
+          echo "ip=$IP" >> $GITHUB_OUTPUT
 
       - name: Get S3 bucket name
         id: get-bucket
-        run: echo "bucket=$(terraform output -raw springboot_bucket_name)" >> "$GITHUB_OUTPUT"
+        run: |
+          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r')
+          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
 
   build_upload:
     runs-on: ubuntu-latest
