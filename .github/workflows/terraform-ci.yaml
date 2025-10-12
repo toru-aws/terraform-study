@@ -98,6 +98,10 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Grant execute permission for gradlew   #実行権限付与
+        working-directory: app
+        run: chmod +x gradlew
+
       - name: Build JAR
         working-directory: app
         run: ./gradlew clean build
