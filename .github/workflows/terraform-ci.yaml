@@ -3,7 +3,7 @@ name: Terraform + Ansible CI/CD
 on:
   push:
     branches:
-      - main
+      - test
     paths:
       - 'terraform/**/*.tf'
       - 'terraform/**.tftest.hcl'
