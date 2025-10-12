@@ -45,19 +45,23 @@ jobs:
         run: terraform validate
 
       - name: Terraform plan
-        run: terraform plan -var "db_username=${{ secrets.DB_USERNAME }}" \
-                          -var "db_password=${{ secrets.DB_PASSWORD }}" \
-                          -var "key_name=${{ secrets.KEY_NAME }}" \
-                          -var "my_ip=${{ secrets.MY_IP }}" \
-                          -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+        run: |
+          terraform plan \
+            -var "db_username=${{ secrets.DB_USERNAME }}" \
+            -var "db_password=${{ secrets.DB_PASSWORD }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            -var "my_ip=${{ secrets.MY_IP }}" \
+            -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
 
       - name: Terraform apply
-        run: terraform apply -auto-approve \
-              -var "db_username=${{ secrets.DB_USERNAME }}" \
-              -var "db_password=${{ secrets.DB_PASSWORD }}" \
-              -var "key_name=${{ secrets.KEY_NAME }}" \
-              -var "my_ip=${{ secrets.MY_IP }}" \
-              -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+        run: |
+          terraform apply -auto-approve \
+            -var "db_username=${{ secrets.DB_USERNAME }}" \
+            -var "db_password=${{ secrets.DB_PASSWORD }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            -var "my_ip=${{ secrets.MY_IP }}" \
+            -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+
 
       - name: Get EC2 public IP
         id: get-ip
