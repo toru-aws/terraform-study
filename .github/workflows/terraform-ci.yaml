@@ -107,8 +107,9 @@ jobs:
         run: ./gradlew clean build
 
       - name: Upload JAR to S3
+        env:
+          BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
         run: |
-          BUCKET=${{ needs.terraform.outputs.s3_bucket }}
           echo "Uploading to bucket: $BUCKET"
           aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
 
