@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-     - 'terraform/**/*.tf'
-     - 'terraform/**.tftest.hcl'
-     - '.github/workflows/*.yaml'
-     - 'terraform/modules/**/*.tf'
+      - 'terraform/**/*.tf'
+      - 'terraform/**.tftest.hcl'
+      - '.github/workflows/*.yaml'
+      - 'terraform/modules/**/*.tf'
 
 jobs:
   terraform:
@@ -38,17 +38,26 @@ jobs:
       - name: Terraform init
         run: terraform init
 
+      - name: Terraform fmt check
+        run: terraform fmt -check
+
       - name: Terraform validate
         run: terraform validate
 
+      - name: Terraform plan
+        run: terraform plan -var "db_username=${{ secrets.DB_USERNAME }}" \
+                          -var "db_password=${{ secrets.DB_PASSWORD }}" \
+                          -var "key_name=${{ secrets.KEY_NAME }}" \
+                          -var "my_ip=${{ secrets.MY_IP }}" \
+                          -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+
       - name: Terraform apply
-        run: |
-          terraform apply -auto-approve \
-            -var "db_username=${{ secrets.DB_USERNAME }}" \
-            -var "db_password=${{ secrets.DB_PASSWORD }}" \
-            -var "key_name=${{ secrets.KEY_NAME }}" \
-            -var "my_ip=${{ secrets.MY_IP }}" \
-            -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+        run: terraform apply -auto-approve \
+              -var "db_username=${{ secrets.DB_USERNAME }}" \
+              -var "db_password=${{ secrets.DB_PASSWORD }}" \
+              -var "key_name=${{ secrets.KEY_NAME }}" \
+              -var "my_ip=${{ secrets.MY_IP }}" \
+              -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
 
       - name: Get EC2 public IP
         id: get-ip
@@ -69,7 +78,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Clone Spring Boot App (from external repo)
+      - name: Clone Spring Boot App
         run: git clone https://github.com/koujienami/aws-study.git app
 
       - name: Setup Java
@@ -82,7 +91,7 @@ jobs:
         working-directory: app
         run: ./gradlew clean build
 
-      - name: Upload to S3
+      - name: Upload JAR to S3
         run: |
           BUCKET=${{ needs.terraform.outputs.s3_bucket }}
           echo "Uploading to bucket: $BUCKET"
@@ -119,7 +128,8 @@ jobs:
             -i "${{ needs.terraform.outputs.ec2_ip }}," \
             -u ec2-user \
             --private-key key.pem \
-            Ansible/playbook.yml
+            --ssh-extra-args "-o StrictHostKeyChecking=no" \
+            ansible/playbook.yml
 
 concurrency:
   group: terraform-${{ github.ref }}
