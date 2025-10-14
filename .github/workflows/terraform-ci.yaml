@@ -64,8 +64,8 @@ jobs:
 
       - name: Get EC2 public IP
         id: get-ip
-        working-directory: terraform
         run: |
+          cd terraform          
           IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
           echo "ip<<EOF" >> $GITHUB_OUTPUT
           echo "$IP" >> $GITHUB_OUTPUT
@@ -73,8 +73,8 @@ jobs:
 
       - name: Get S3 bucket name
         id: get-bucket
-        working-directory: terraform
         run: |
+          cd terraform          
           BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r')
           echo "bucket<<EOF" >> $GITHUB_OUTPUT
           echo "$BUCKET" >> $GITHUB_OUTPUT
