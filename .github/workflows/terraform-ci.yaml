@@ -66,14 +66,18 @@ jobs:
       - name: Get EC2 public IP
         id: get-ip
         run: |
-          IP=$(terraform output -raw ec2_public_ip)
-          echo "ip=$IP" >> $GITHUB_OUTPUT
+          IP=$(terraform -chdir=terraform output -raw ec2_public_ip | tr -d '\r')
+          echo "ip<<EOF" >> $GITHUB_OUTPUT
+          echo "$IP" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get S3 bucket name
         id: get-bucket
         run: |
-         BUCKET=$(terraform output -raw springboot_bucket_name)
-         echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+          BUCKET=$(terraform -chdir=terraform output -raw springboot_bucket_name | tr -d '\r')
+          echo "bucket<<EOF" >> $GITHUB_OUTPUT
+          echo "$BUCKET" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   build_upload:
     runs-on: ubuntu-latest
@@ -106,8 +110,10 @@ jobs:
       - name: Get S3 bucket name
         id: get-bucket
         run: |
-          BUCKET=$(terraform output -raw springboot_bucket_name)
-          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+          BUCKET=$(terraform -chdir=terraform output -raw springboot_bucket_name | tr -d '\r')
+          echo "bucket<<EOF" >> $GITHUB_OUTPUT
+          echo "$BUCKET" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   ansible:
     needs: [terraform, build_upload]
