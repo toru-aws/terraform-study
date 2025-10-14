@@ -5,6 +5,7 @@ on:
     branches:
       - test
     paths:
+      - '*.tf'      
       - 'terraform/**/*.tf'
       - 'terraform/**.tftest.hcl'
       - '.github/workflows/*.yaml'
