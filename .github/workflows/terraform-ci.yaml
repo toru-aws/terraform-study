@@ -67,13 +67,21 @@ jobs:
         id: get-ip
         run: |
           IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
-          echo "ec2_ip=$IP" >> $GITHUB_OUTPUT
+          {
+            echo "ec2_ip<<EOF"
+            echo "$IP"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Get S3 bucket name
         id: get-bucket
         run: |
           BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r')
-          echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
+          {
+            echo "s3_bucket<<EOF"
+            echo "$BUCKET"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   build_upload:
     runs-on: ubuntu-latest
