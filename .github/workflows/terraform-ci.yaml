@@ -67,13 +67,17 @@ jobs:
         id: get-ip
         run: |
           IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
-          echo "ip=$IP" >> $GITHUB_OUTPUT
+          echo "ip<<EOF" >> $GITHUB_OUTPUT
+          echo "$IP" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get S3 bucket name
         id: get-bucket
         run: |
           BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r')
-          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+          echo "bucket<<EOF" >> $GITHUB_OUTPUT
+          echo "$BUCKET" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   build_upload:
     runs-on: ubuntu-latest
@@ -104,8 +108,10 @@ jobs:
         run: ./gradlew clean build
 
       - name: Upload JAR to S3
+        env:
+          BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
         run: |
-          aws s3 cp app/build/libs/myapp.jar s3://${{ needs.terraform.outputs.s3_bucket }}/myapp.jar
+          aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
 
   ansible:
     needs: [terraform, build_upload]
@@ -120,11 +126,12 @@ jobs:
           python-version: '3.x'
 
       - name: Install Ansible
-        run: pip install ansible boto3 amazon.aws
+        run: pip install ansible boto3
 
       - name: Add EC2 host key to known_hosts
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           ssh-keyscan -H ${{ needs.terraform.outputs.ec2_ip }} >> ~/.ssh/known_hosts
 
       - name: Run Ansible Playbook
