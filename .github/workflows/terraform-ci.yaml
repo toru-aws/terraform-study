@@ -67,17 +67,13 @@ jobs:
         id: get-ip
         run: |
           IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
-          echo "ip<<EOF" >> $GITHUB_OUTPUT
-          echo "$IP" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "ec2_ip=$IP" >> $GITHUB_OUTPUT
 
       - name: Get S3 bucket name
         id: get-bucket
         run: |
           BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r')
-          echo "bucket<<EOF" >> $GITHUB_OUTPUT
-          echo "$BUCKET" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
 
   build_upload:
     runs-on: ubuntu-latest
@@ -110,9 +106,7 @@ jobs:
       - name: Upload JAR to S3
         env:
           BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
-        run: |
-          CLEAN_BUCKET=$(echo "$BUCKET" | tr -d '\r\n')
-          aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
+        run: aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
 
   ansible:
     needs: [terraform, build_upload]
