@@ -111,6 +111,10 @@ jobs:
         working-directory: app
         run: ./gradlew clean build
 
+      - name: List build output
+        working-directory: app
+        run: ls -R build
+
       - name: Upload JAR to S3
         env:
           BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
