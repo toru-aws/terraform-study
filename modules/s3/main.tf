@@ -15,8 +15,3 @@ resource "aws_s3_bucket" "springboot_app" {
 output "springboot_bucket_name" {
   value = aws_s3_bucket.springboot_app.bucket
 }
-
-
-module "s3" {
-  source = "./s3"
-}
