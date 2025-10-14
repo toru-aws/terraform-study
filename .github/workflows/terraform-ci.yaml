@@ -111,6 +111,7 @@ jobs:
         env:
           BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
         run: |
+          CLEAN_BUCKET=$(echo "$BUCKET" | tr -d '\r\n')
           aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
 
   ansible:
