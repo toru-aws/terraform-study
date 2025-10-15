@@ -149,7 +149,10 @@ jobs:
       - name: Upload JAR to S3
         env:
           BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
-        run: aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
+        run: |
+          echo "Uploading to bucket: $BUCKET"
+          ls app/build/libs
+          aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
 
   ansible:
     needs: [terraform, build_upload]
