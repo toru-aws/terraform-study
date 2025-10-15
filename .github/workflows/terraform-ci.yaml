@@ -137,8 +137,8 @@ jobs:
 
           dependencies {
               implementation 'org.springframework.boot:spring-boot-starter'
-              implementation 'org.springframework.boot:spring-boot-starter-web' # Spring Web
-              implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2' # MyBatis
+              implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
+              implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2' // MyBatis
               compileOnly 'org.projectlombok:lombok:1.18.28'
               annotationProcessor 'org.projectlombok:lombok:1.18.28'
               testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -163,14 +163,7 @@ jobs:
 
       - name: Build JAR
         working-directory: app
-        run: |
-          if [ -f ./gradlew ]; then
-            echo "Using ./gradlew"
-            ./gradlew clean build --no-daemon
-          else
-            echo "Using gradle (system installed)"
-            gradle clean build --no-daemon
-          fi
+        run: gradlew clean build
 
       - name: List build output
         working-directory: app
