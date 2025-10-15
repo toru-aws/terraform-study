@@ -111,9 +111,6 @@ jobs:
           enabled = true
           }
 
-          bootWar {
-               enabled = false
-          }
           EOF
 
       - name: Setup Java
