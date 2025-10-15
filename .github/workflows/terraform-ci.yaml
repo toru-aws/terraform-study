@@ -101,6 +101,25 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.11.1
+      - name: Generate Gradle wrapper in CI
+        working-directory: app
+        run: |
+          echo "Generating gradle wrapper (CI-only)..."
+
+          gradle wrapper --gradle-version 8.11.1 || true
+
+          ls -la gradle || true
+          test -f gradlew && echo "gradlew exists" || echo "gradlew not found yet"
+
+      - name: Make wrapper executable (if created)
+        working-directory: app
+        run: |
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            echo "made gradlew executable"
+          else
+            echo "gradlew not present; will try running gradle directly"
+          fi
         
       - name: Override build.gradle for JAR
         working-directory: app
@@ -144,7 +163,14 @@ jobs:
 
       - name: Build JAR
         working-directory: app
-        run: gradlew clean build
+        run: |
+          if [ -f ./gradlew ]; then
+            echo "Using ./gradlew"
+            ./gradlew clean build --no-daemon
+          else
+            echo "Using gradle (system installed)"
+            gradle clean build --no-daemon
+          fi
 
       - name: List build output
         working-directory: app
