@@ -96,7 +96,12 @@ jobs:
 
       - name: Clone Spring Boot App
         run: git clone https://github.com/koujienami/aws-study.git app
-
+             
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
+        
       - name: Override build.gradle for JAR
         working-directory: app
         run: |
@@ -113,6 +118,10 @@ jobs:
 
           dependencies {
               implementation 'org.springframework.boot:spring-boot-starter'
+              implementation 'org.springframework.boot:spring-boot-starter-web' # Spring Web
+              implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2' # MyBatis
+              compileOnly 'org.projectlombok:lombok:1.18.28'
+              annotationProcessor 'org.projectlombok:lombok:1.18.28'
               testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
 
@@ -127,6 +136,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+          architecture: x64
 
       - name: Grant execute permission for gradlew
         working-directory: app
@@ -134,7 +144,7 @@ jobs:
 
       - name: Build JAR
         working-directory: app
-        run: ./gradlew clean build
+        run: gradlew clean build
 
       - name: List build output
         working-directory: app
