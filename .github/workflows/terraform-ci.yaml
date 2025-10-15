@@ -76,7 +76,7 @@ jobs:
       - name: Get S3 bucket name
         id: get-bucket
         run: |
-          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r')
+          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r' | tr -d '\n')
           {
             echo "s3_bucket<<EOF"
             echo "$BUCKET"
