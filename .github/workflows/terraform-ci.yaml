@@ -101,26 +101,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.11.1
+
       - name: Generate Gradle wrapper in CI
         working-directory: app
         run: |
-          echo "Generating gradle wrapper (CI-only)..."
+          echo "Generating gradle wrapper..."
+          gradle wrapper --gradle-version 8.11.1
+          chmod +x gradlew
+          ls -la
 
-          gradle wrapper --gradle-version 8.11.1 || true
-
-          ls -la gradle || true
-          test -f gradlew && echo "gradlew exists" || echo "gradlew not found yet"
-
-      - name: Make wrapper executable (if created)
-        working-directory: app
-        run: |
-          if [ -f gradlew ]; then
-            chmod +x gradlew
-            echo "made gradlew executable"
-          else
-            echo "gradlew not present; will try running gradle directly"
-          fi
-        
       - name: Override build.gradle for JAR
         working-directory: app
         run: |
@@ -130,11 +119,7 @@ jobs:
             id 'io.spring.dependency-management' version '1.1.4'
             id 'java'
           }
-                     
-          repositories {
-          mavenCentral()
-          }
-
+          repositories { mavenCentral() }
           dependencies {
               implementation 'org.springframework.boot:spring-boot-starter'
               implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
@@ -143,11 +128,7 @@ jobs:
               annotationProcessor 'org.projectlombok:lombok:1.18.28'
               testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
-
-          bootJar {
-          enabled = true
-          }
-
+          bootJar { enabled = true }
           EOF
 
       - name: Setup Java
@@ -157,13 +138,9 @@ jobs:
           java-version: 21
           architecture: x64
 
-      - name: Grant execute permission for gradlew
-        working-directory: app
-        run: chmod +x gradlew
-
       - name: Build JAR
         working-directory: app
-        run: gradlew clean build
+        run: ./gradlew clean build --no-daemon 
 
       - name: List build output
         working-directory: app
