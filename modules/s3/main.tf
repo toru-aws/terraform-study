@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "springboot_app" {
   bucket = "my-springboot-app-2025"
+  force_destroy = true
   acl    = "private"
 
   versioning {
