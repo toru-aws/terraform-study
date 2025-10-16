@@ -77,9 +77,9 @@ jobs:
         id: get-bucket
         run: |
           echo "Extracting S3 bucket name..."
-          BUCKET=$(terraform output -raw springboot_bucket_name 2>/dev/null || terraform output springboot_bucket_name | tr -d '"')
-          BUCKET=$(echo "$BUCKET" | tr -d '\r' | tr -d '\n')
-          echo "Bucket is: $BUCKET"
+          terraform output -raw springboot_bucket_name > bucket.txt || terraform output springboot_bucket_name | tr -d '"' > bucket.txt
+          BUCKET=$(cat bucket.txt | tr -d '\r' | tr -d '\n')
+          echo "Clean bucket: '$BUCKET'"
           echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
 
   build_upload:
