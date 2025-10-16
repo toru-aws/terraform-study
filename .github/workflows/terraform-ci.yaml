@@ -78,8 +78,8 @@ jobs:
         shell: bash
         run: |
           echo "Extracting S3 bucket name..."
-          BUCKET=$(terraform output -raw springboot_bucket_name 2>/dev/null || echo "")
-          BUCKET=$(echo "$BUCKET" | tr -d '\r\n' | head -n 1)
+          RAW_BUCKET=$(terraform output -raw springboot_bucket_name 2>/dev/null || terraform output springboot_bucket_name | tr -d '"')
+          BUCKET=$(echo "$RAW_BUCKET" | tr -d '\r\n' | grep -Eo '^[a-zA-Z0-9.-]+$')
           echo "Detected bucket: '$BUCKET'"
           echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
 
@@ -150,9 +150,8 @@ jobs:
         env:
           BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
         run: |
-          echo "Uploading to bucket: $BUCKET"
-          aws s3 ls "s3://$BUCKET" || echo "Bucket check failed"
-          aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
+          echo "Uploading to bucket: ${BUCKET}"
+          aws s3 cp app/build/libs/*.jar s3://${BUCKET}/myapp.jar
 
   ansible:
     needs: [terraform, build_upload]
