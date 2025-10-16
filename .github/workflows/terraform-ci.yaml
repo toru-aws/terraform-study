@@ -162,7 +162,7 @@ jobs:
           echo "Bucket: $BUCKET"
 
       - name: Upload JAR to S3
-        run: aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
+        run: aws s3 cp app/build/libs/ s3://$BUCKET/ --recursive
 
   ansible:
     needs: [terraform, build_upload]
