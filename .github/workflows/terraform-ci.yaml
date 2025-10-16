@@ -145,12 +145,10 @@ jobs:
         working-directory: app
         run: ls -R build
 
-      - name: Get S3 bucket name
-        id: get-bucket
-        run: |
-          BUCKET=$(terraform output -raw springboot_bucket_name)
-          echo "Detected bucket: '$BUCKET'"
-          echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
+      - name: Upload JAR to S3
+        env:
+          BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
+        run: aws s3 cp app/build/libs/*.jar s3://$BUCKET/myapp.jar
 
   ansible:
     needs: [terraform, build_upload]
