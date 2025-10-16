@@ -80,7 +80,9 @@ jobs:
           echo "Extracting S3 bucket name..."
           BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r' | tr -d '\n')
           echo "Detected bucket: '$BUCKET'"
-          echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
+          echo "s3_bucket<<EOF" >> $GITHUB_OUTPUT
+          echo "$BUCKET" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   build_upload:
     runs-on: ubuntu-latest
