@@ -78,8 +78,7 @@ jobs:
         shell: bash
         run: |
           echo "Extracting S3 bucket name..."
-          RAW_BUCKET=$(terraform output -raw springboot_bucket_name 2>/dev/null || terraform output springboot_bucket_name | tr -d '"')
-          BUCKET=$(echo "$RAW_BUCKET" | tr -d '\r\n' | grep -Eo '^[a-zA-Z0-9.-]+$')
+          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r' | tr -d '\n')
           echo "Detected bucket: '$BUCKET'"
           echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
 
