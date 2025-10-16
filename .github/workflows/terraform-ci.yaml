@@ -179,11 +179,13 @@ jobs:
       - name: Install Ansible
         run: pip install ansible boto3
 
-      - name: Add EC2 host key to known_hosts
+      - name: Setup SSH directory
         run: |
+          echo "HOME=$HOME"
+          ls -ld $HOME
+          if [ -f "$HOME/.ssh" ]; then mv $HOME/.ssh $HOME/.ssh.bak; fi
           mkdir -p $HOME/.ssh
           chmod 700 $HOME/.ssh
-          ssh-keyscan -H ${{ needs.terraform.outputs.ec2_ip }} >> $HOME/.ssh/known_hosts
 
       - name: Run Ansible Playbook
         env:
