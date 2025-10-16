@@ -36,6 +36,12 @@ jobs:
         with:
           terraform_version: '1.13.3'
 
+      - name: Check terraform CLI
+        run: |
+          echo "Checking terraform executable and version"
+          which terraform
+          terraform version
+
       - name: Terraform init
         run: terraform init
 
@@ -78,9 +84,16 @@ jobs:
         shell: bash
         run: |
           echo "Extracting S3 bucket name..."
-          TF=$(which terraform)
-          BUCKET=$($TF output -raw springboot_bucket_name | tr -d '\r\n' | xargs)
+          echo "Terraform binary path:"
+          which terraform
+          terraform version
+
+          # Directly run terraform output command, no variable indirection
+          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r\n' | xargs)
+
           echo "Detected bucket: '$BUCKET'"
+
+          # Set the output for next jobs
           echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
 
   build_upload:
@@ -98,7 +111,7 @@ jobs:
 
       - name: Clone Spring Boot App
         run: git clone https://github.com/koujienami/aws-study.git app
-             
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -124,8 +137,8 @@ jobs:
           repositories { mavenCentral() }
           dependencies {
               implementation 'org.springframework.boot:spring-boot-starter'
-              implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
-              implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2' // MyBatis
+              implementation 'org.springframework.boot:spring-boot-starter-web'
+              implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2'
               compileOnly 'org.projectlombok:lombok:1.18.28'
               annotationProcessor 'org.projectlombok:lombok:1.18.28'
               testImplementation 'org.springframework.boot:spring-boot-starter-test'
