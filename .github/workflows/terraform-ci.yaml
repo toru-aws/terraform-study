@@ -199,12 +199,11 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > key.pem
           chmod 600 key.pem
-          ansible-playbook $GITHUB_WORKSPACE/terraform/ansible/playbook.yml \
+          ansible-playbook $GITHUB_WORKSPACE/Ansible/playbook.yml \
             -i "${{ needs.terraform.outputs.ec2_ip }}," \
             -u ec2-user \
             --private-key key.pem \
             --ssh-extra-args "-o StrictHostKeyChecking=no"
-            
             
 concurrency:
   group: terraform-${{ github.ref }}
