@@ -22,6 +22,7 @@
         mode: get
         region: ap-northeast-1
 
+
     - name: Create systemd service for Spring Boot
       copy:
         dest: /etc/systemd/system/myapp.service
