@@ -188,7 +188,7 @@ jobs:
           chmod 700 $HOME/.ssh
 
       - name: Run Ansible Playbook
-        working-directory: terraform/ansible
+        working-directory: terraform/Ansible
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           S3_BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
