@@ -171,6 +171,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Show repository structure
+        run: |
+           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+           ls -R $GITHUB_WORKSPACE
+    
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -194,7 +199,7 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > key.pem
           chmod 600 key.pem
-          ansible-playbook $GITHUB_WORKSPACE/terraform/Ansible/playbook.yml
+          ansible-playbook $GITHUB_WORKSPACE/terraform/ansible/playbook.yml \
             -i "${{ needs.terraform.outputs.ec2_ip }}," \
             -u ec2-user \
             --private-key key.pem \
