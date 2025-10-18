@@ -188,20 +188,18 @@ jobs:
           chmod 700 $HOME/.ssh
 
       - name: Run Ansible Playbook
-        working-directory: terraform/Ansible
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           S3_BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
         run: |
           echo "$EC2_SSH_KEY" > key.pem
           chmod 600 key.pem
-          ansible-playbook playbook.yml\
+          ansible-playbook $GITHUB_WORKSPACE/terraform/Ansible/playbook.yml
             -i "${{ needs.terraform.outputs.ec2_ip }}," \
             -u ec2-user \
             --private-key key.pem \
             --ssh-extra-args "-o StrictHostKeyChecking=no"
             
-
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
