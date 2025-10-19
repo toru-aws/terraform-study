@@ -11,7 +11,7 @@ on:
       - 'terraform/**.tftest.hcl'
       - '.github/workflows/*.yaml'
       - 'terraform/modules/**/*.tf'
-      - 'terraform/ansible/playbook.yml'
+      - 'terraform/Ansible/playbook.yml'
       
 jobs:
   terraform:
