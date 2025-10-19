@@ -1,6 +1,7 @@
 - name: Deploy Spring Boot Application
   hosts: all
-  become: true
+  collections:
+    - amazon.aws
 
   tasks:
     - name: Ensure Java 17 is installed
@@ -28,6 +29,10 @@
         state: directory
         mode: '0755'
 
+    - name: Show AWS_DEFAULT_REGION
+      debug:
+        msg: "AWS_DEFAULT_REGION={{ lookup('env','AWS_DEFAULT_REGION') }}"
+
     - name: Download JAR from S3
       amazon.aws.aws_s3:
         bucket: "{{ lookup('env', 'S3_BUCKET') }}"
@@ -35,6 +40,10 @@
         dest: /opt/myapp/myapp.jar
         mode: get
         region: ap-northeast-1
+        environment:
+          AWS_ACCESS_KEY_ID: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+          AWS_SECRET_ACCESS_KEY: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+          AWS_DEFAULT_REGION: "ap-northeast-1"
 
     - name: Create systemd service for Spring Boot
       copy:
