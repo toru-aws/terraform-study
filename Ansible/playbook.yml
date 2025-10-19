@@ -33,6 +33,7 @@
       debug:
         msg: "AWS_DEFAULT_REGION={{ lookup('env','AWS_DEFAULT_REGION') }}"
 
+
     - name: Download JAR from S3
       amazon.aws.aws_s3:
         bucket: "{{ lookup('env', 'S3_BUCKET') }}"
