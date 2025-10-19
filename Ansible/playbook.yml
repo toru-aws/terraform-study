@@ -13,7 +13,7 @@
         name: python3-pip
         state: present
       become: true
-      
+
     - name: Install AWS Python SDK on EC2
       pip:
          name:
@@ -35,7 +35,6 @@
         dest: /opt/myapp/myapp.jar
         mode: get
         region: ap-northeast-1
-
 
     - name: Create systemd service for Spring Boot
       copy:

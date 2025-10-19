@@ -140,7 +140,10 @@ jobs:
               annotationProcessor 'org.projectlombok:lombok:1.18.28'
               testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
-          bootJar { enabled = true }
+          bootJar {
+            enabled = true
+            archiveFileName = 'myapp.jar'
+          }
           EOF
 
       - name: Setup Java
