@@ -10,7 +10,7 @@ on:
       - 'terraform/**.tftest.hcl'
       - '.github/workflows/*.yaml'
       - 'terraform/modules/**/*.tf'
-      - 'terraform/ansible/*.yml'
+      - 'terraform/Ansible/*.yml'
       
 jobs:
   terraform:
