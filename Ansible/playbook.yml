@@ -2,6 +2,7 @@
   hosts: all
   collections:
     - amazon.aws
+  become: true
 
   tasks:
     - name: Ensure Java 17 is installed
@@ -13,7 +14,6 @@
       dnf:
         name: python3-pip
         state: present
-      become: true
 
     - name: Install AWS Python SDK on EC2
       pip:
@@ -21,7 +21,6 @@
            - boto3
            - botocore
          executable: pip3
-      become: true
       
     - name: Create application directory
       file:
@@ -32,7 +31,6 @@
     - name: Show AWS_DEFAULT_REGION
       debug:
         msg: "AWS_DEFAULT_REGION={{ lookup('env','AWS_DEFAULT_REGION') }}"
-
 
     - name: Download JAR from S3
       amazon.aws.aws_s3:
