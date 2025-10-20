@@ -81,6 +81,12 @@ jobs:
             echo "$IP"
             echo "EOF"
           } >> $GITHUB_OUTPUT
+      
+      - name: Get RDS endpoint
+        id: get-rds-endpoint
+        run: |
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
 
       - name: Get S3 bucket name
         id: get-bucket
@@ -93,6 +99,10 @@ jobs:
           BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r\n' | xargs)
           echo "Detected bucket: '$BUCKET'"
           echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
+
+      - name: Modify application.properties
+        run: |
+          sed -i -e "s|jdbc:mysql://localhost:3306/awsstudy|jdbc:mysql://${{ needs.terraform.outputs.rds_endpoint }}:3306/awsstudy|g" app/src/main/resources/application.properties
 
   build_upload:
     runs-on: ubuntu-latest
@@ -216,6 +226,7 @@ jobs:
             -u ec2-user \
             --private-key key.pem \
             --ssh-extra-args "-o StrictHostKeyChecking=no"
+            --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }}"
             
 concurrency:
   group: terraform-${{ github.ref }}
