@@ -19,6 +19,7 @@ jobs:
     outputs:
       ec2_ip: ${{ steps.get-ip.outputs.ec2_ip }}
       s3_bucket: ${{ steps.get-bucket.outputs.s3_bucket }}
+      rds_endpoint: ${{ steps.get-rds-endpoint.outputs.rds_endpoint }}
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

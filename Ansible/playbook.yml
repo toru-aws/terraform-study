@@ -91,8 +91,8 @@
         status_code: 200
         timeout: 60
       register: app_check
-      retries: 5
-      delay: 5
+      retries: 10
+      delay: 10
       until: app_check.status == 200
 
     - name: Print confirmation
