@@ -95,14 +95,14 @@
 
     - name: Pause before health check
       pause:
-        seconds: 60
+        seconds: 120
 
     - name: Wait for application to start
       uri:
         url: "http://{{ ec2_ip }}:8080"
         status_code: 200
       register: app_check
-      retries: 15
+      retries: 20
       delay: 15
       until: app_check.status == 200
 
