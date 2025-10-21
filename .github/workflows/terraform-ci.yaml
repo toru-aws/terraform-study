@@ -226,7 +226,7 @@ jobs:
             -i "${{ needs.terraform.outputs.ec2_ip }}," \
             -u ec2-user \
             --private-key key.pem \
-            --ssh-extra-args "-o StrictHostKeyChecking=no"
+            --ssh-extra-args "-o StrictHostKeyChecking=no" \
             --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }}"
             
 concurrency:
