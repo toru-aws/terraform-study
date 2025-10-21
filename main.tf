@@ -59,3 +59,7 @@ resource "aws_wafv2_web_acl_association" "alb_waf" {
 module "s3" {
   source = "./modules/s3"
 }
+
+output "rds_endpoint" {
+  value = module.rds.rds_endpoint
+}
