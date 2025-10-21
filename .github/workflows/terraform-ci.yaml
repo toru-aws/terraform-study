@@ -120,7 +120,7 @@ jobs:
       - name: Modify application.properties
         working-directory: app
         run: |
-          sed -i -e "s|jdbc:mysql://localhost:3306/awsstudy|jdbc:mysql://${{ needs.terraform.outputs.rds_endpoint }}:3306/awsstudy|g" src/main/resources/application.properties
+          sed -i -e "s|jdbc:mysql://localhost:3306/awsstudy|jdbc:mysql://${{ needs.terraform.outputs.rds_endpoint }}/awsstudy|g" src/main/resources/application.properties
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
