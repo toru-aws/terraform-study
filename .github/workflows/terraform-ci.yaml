@@ -83,6 +83,10 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
       
+      - name: Confirm RDS Endpoint
+        run: |
+          echo "RDS Endpoint: ${{ steps.get-rds-endpoint.outputs.rds_endpoint }}"
+        
       - name: Get RDS endpoint
         id: get-rds-endpoint
         run: |
@@ -146,12 +150,12 @@ jobs:
           }
           repositories { mavenCentral() }
           dependencies {
-              implementation 'org.springframework.boot:spring-boot-starter'
-              implementation 'org.springframework.boot:spring-boot-starter-web'
-              implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2'
-              compileOnly 'org.projectlombok:lombok:1.18.28'
-              annotationProcessor 'org.projectlombok:lombok:1.18.28'
-              testImplementation 'org.springframework.boot:spring-boot-starter-test'
+            implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' // 3.0.2 → 3.0.3に変更
+            compileOnly 'org.projectlombok:lombok:1.18.28'
+            annotationProcessor 'org.projectlombok:lombok:1.18.28'
+            implementation 'org.springframework.boot:spring-boot-starter'
+            implementation 'org.springframework.boot:spring-boot-starter-web'
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
           bootJar {
             enabled = true
