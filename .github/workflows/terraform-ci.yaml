@@ -157,6 +157,12 @@ jobs:
             implementation 'org.springframework.boot:spring-boot-starter-web'
             testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
+            
+          java {
+          sourceCompatibility = JavaVersion.VERSION_17
+          targetCompatibility = JavaVersion.VERSION_17
+          }
+
           bootJar {
             enabled = true
             archiveFileName = 'myapp.jar'
@@ -167,7 +173,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 17
           architecture: x64
 
       - name: Build JAR
