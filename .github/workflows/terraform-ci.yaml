@@ -214,7 +214,7 @@ jobs:
           if [ -f "$HOME/.ssh" ]; then mv $HOME/.ssh $HOME/.ssh.bak; fi
           mkdir -p $HOME/.ssh
           chmod 700 $HOME/.ssh
-
+        
       - name: Run Ansible Playbook
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}

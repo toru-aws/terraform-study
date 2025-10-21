@@ -81,6 +81,10 @@
         enabled: yes
         state: started
 
+    - name: Debug ec2_ip value
+      debug:
+        var: ec2_ip
+
     - name: Wait for application to start
       uri:
         url: "http://{{ ec2_ip }}:8080"
