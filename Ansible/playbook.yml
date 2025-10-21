@@ -1,7 +1,100 @@
----
-- name: Test connection to EC2
-  hosts: web
-  tasks:
-    - name: Ping test
-      ansible.builtin.ping:
+- name: Deploy Spring Boot Application
+  hosts: all
+  collections:
+    - amazon.aws
 
+  module_defaults:
+    group/aws:
+      aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+      aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+      region: ap-northeast-1
+
+  become: true
+
+  tasks:
+    - name: Ensure Java 17 is installed
+      dnf:
+        name: java-17-amazon-corretto-devel.x86_64
+        state: present
+    
+    - name: Install python3-pip on EC2
+      dnf:
+        name: python3-pip
+        state: present
+
+    - name: Install AWS Python SDK on EC2
+      pip:
+         name:
+           - boto3
+           - botocore
+         executable: pip3
+      
+    - name: Create application directory
+      file:
+        path: /opt/myapp
+        state: directory
+        mode: '0755'
+
+    - name: Show AWS_DEFAULT_REGION
+      debug:
+        msg: "AWS_DEFAULT_REGION={{ lookup('env','AWS_DEFAULT_REGION') }}"
+
+    - name: Download JAR from S3
+      amazon.aws.aws_s3:
+        bucket: "{{ lookup('env', 'S3_BUCKET') }}"
+        object: "myapp.jar"
+        dest: /opt/myapp/myapp.jar
+        mode: get
+        region: ap-northeast-1
+  
+    - name: Create systemd service for Spring Boot
+      copy:
+        dest: /etc/systemd/system/myapp.service
+        content: |
+          [Unit]
+          Description=Spring Boot Application
+          After=network.target
+
+          [Service]
+          User=ec2-user
+          WorkingDirectory=/opt/myapp
+          ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar \
+            --server.address=0.0.0.0 \
+            --server.port=8080
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=10
+          StandardOutput=syslog
+          StandardError=syslog
+          SyslogIdentifier=myapp
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start myapp service
+      systemd:
+        name: myapp
+        enabled: yes
+        state: started
+
+    - name: Debug ec2_ip value
+      debug:
+        var: ec2_ip
+
+    - name: Wait for application to start
+      uri:
+        url: "http://{{ ec2_ip }}:8080"
+        status_code: 200
+        timeout: 200
+      register: app_check
+      retries: 10
+      delay: 10
+      until: app_check.status == 200
+
+    - name: Print confirmation
+      debug:
+        msg: "✅ Spring Boot app started successfully on port 8080 and is accessible externally."

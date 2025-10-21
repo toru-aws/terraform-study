@@ -55,3 +55,11 @@ resource "aws_wafv2_web_acl_association" "alb_waf" {
   resource_arn = module.alb.alb_arn     # ALBモジュールが出力した値
   web_acl_arn  = module.waf.web_acl_arn # WAFモジュールが出力した値
 }
+
+module "s3" {
+  source = "./modules/s3"
+}
+
+output "rds_endpoint" {
+  value = module.rds.rds_endpoint
+}

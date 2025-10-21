@@ -1,86 +1,245 @@
-name: Terraform CI
+name: Terraform + Ansible CI/CD
 
 on:
-  pull_request:
-    paths:
-     - 'terraform/**/*.tf'
-     - 'terraform/**.tftest.hcl'
-     - '.github/workflows/*.yaml'
-     - 'terraform/modules/**/*.tf'
-
   push:
     branches:
-      - main
-    paths:
-     - 'terraform/**/*.tf'
-     - 'terraform/**.tftest.hcl'
-     - '.github/workflows/*.yaml'
-     - 'terraform/modules/**/*.tf'
+      - test
 
+    paths:
+      - '*.tf'
+      - 'terraform/**/*.tf'
+      - 'terraform/**.tftest.hcl'
+      - '.github/workflows/*.yaml'
+      - 'terraform/modules/**/*.tf'
+      - 'terraform/Ansible/playbook.yml'
+      
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    outputs:
+      ec2_ip: ${{ steps.get-ip.outputs.ec2_ip }}
+      s3_bucket: ${{ steps.get-bucket.outputs.s3_bucket }}
+      rds_endpoint: ${{ steps.get-rds-endpoint.outputs.rds_endpoint }}
     env:
-      AWS_ACCESS_KEY_ID    : ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      DB_PASSWORD          : ${{ secrets.DB_PASSWORD }}
-      DB_USERNAME          : ${{ secrets.DB_USERNAME }}
-      NOTIFICATION_EMAIL   : ${{ secrets.NOTIFICATION_EMAIL }}
-      KEY_NAME             : ${{ secrets.KEY_NAME }}
-      MY_IP                : ${{ secrets.MY_IP }}
-      AWS_DEFAULT_REGION   : ap-northeast-1
+      AWS_DEFAULT_REGION: ap-northeast-1
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+      KEY_NAME: ${{ secrets.KEY_NAME }}
+      MY_IP: ${{ secrets.MY_IP }}
 
     steps:
-     - name: Checkout repository
-       uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-     - name: Setup Terraform
-       uses: hashicorp/setup-terraform@v2
-       with:
-         terraform_version: '1.13.3' 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.13.3'
+          terraform_wrapper: false
 
-     - name: Terraform init
-       run: terraform init
-   
-     - name: Terraform fmt
-       run: terraform fmt -check
+      - name: Check terraform CLI
+        run: |
+          echo "Checking terraform executable and version"
+          which terraform
+          terraform version
 
-     - name: Terraform validate
-       run: terraform validate
-   
-     - name: Run Terraform tests
-       run: |
-         terraform test \
-           -var "db_username=${{ secrets.DB_USERNAME }}" \
-           -var "db_password=${{ secrets.DB_PASSWORD }}" \
-           -var "vpc_id=vpc-dummy" \
-           -var "public_subnet_id=subnet-dummy" \
-           -var "key_name=my-keypair-dummy" \
-           -var "my_ip=1.2.3.4/32"
+      - name: Terraform init
+        run: terraform init
 
-     - name: Terraform plan
-       if: github.event_name == 'pull_request'
-       run: |
-         terraform plan \
-           -var "db_username=${{ secrets.DB_USERNAME }}" \
-           -var "db_password=${{ secrets.DB_PASSWORD }}" \
-           -var "vpc_id=vpc-dummy" \
-           -var "public_subnet_id=subnet-dummy" \
-           -var "key_name=my-keypair-dummy" \
-           -var "my_ip=1.2.3.4/32" \
-           -var "notification_email=my-mail-dummy"
+      - name: Terraform fmt check
+        run: terraform fmt -check
 
-     - name: Terraform apply
-       if: github.event_name == 'push'
-       run: |
-         terraform apply -auto-approve \
-           -var "db_username=${{ secrets.DB_USERNAME }}" \
-           -var "db_password=${{ secrets.DB_PASSWORD }}" \
-           -var "key_name=${{ secrets.KEY_NAME }}" \
-           -var "my_ip=${{ secrets.MY_IP }}" \
-           -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+      - name: Terraform validate
+        run: terraform validate
 
-           
+      - name: Terraform plan
+        run: |
+          terraform plan \
+            -var "db_username=${{ secrets.DB_USERNAME }}" \
+            -var "db_password=${{ secrets.DB_PASSWORD }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            -var "my_ip=${{ secrets.MY_IP }}" \
+            -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+
+      - name: Terraform apply
+        run: |
+          terraform apply -auto-approve \
+            -var "db_username=${{ secrets.DB_USERNAME }}" \
+            -var "db_password=${{ secrets.DB_PASSWORD }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            -var "my_ip=${{ secrets.MY_IP }}" \
+            -var "notification_email=${{ secrets.NOTIFICATION_EMAIL }}"
+
+      - name: Get EC2 public IP
+        id: get-ip
+        run: |
+          IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
+          {
+            echo "ec2_ip<<EOF"
+            echo "$IP"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+      
+      - name: Confirm RDS Endpoint
+        run: |
+          echo "RDS Endpoint: ${{ steps.get-rds-endpoint.outputs.rds_endpoint }}"
+        
+      - name: Get RDS endpoint
+        id: get-rds-endpoint
+        run: |
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
+
+      - name: Get S3 bucket name
+        id: get-bucket
+        shell: bash
+        run: |
+          echo "Extracting S3 bucket name..."
+          echo "Terraform binary path:"
+          which terraform
+          terraform version
+          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r\n' | xargs)
+          echo "Detected bucket: '$BUCKET'"
+          echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
+
+  build_upload:
+    runs-on: ubuntu-latest
+    needs: terraform
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-1
+      BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Clone Spring Boot App
+        run: git clone https://github.com/koujienami/aws-study.git app
+
+      - name: Modify application.properties
+        working-directory: app
+        run: |
+          sed -i -e "s|jdbc:mysql://localhost:3306/awsstudy|jdbc:mysql://${{ needs.terraform.outputs.rds_endpoint }}/awsstudy|g" src/main/resources/application.properties
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
+
+      - name: Generate Gradle wrapper in CI
+        working-directory: app
+        run: |
+          echo "Generating gradle wrapper..."
+          gradle wrapper --gradle-version 8.11.1
+          chmod +x gradlew
+          ls -la
+
+      - name: Override build.gradle for JAR
+        working-directory: app
+        run: |
+          cat > build.gradle << 'EOF'
+          plugins {
+            id 'org.springframework.boot' version '3.2.2'
+            id 'io.spring.dependency-management' version '1.1.4'
+            id 'java'
+          }
+          repositories { mavenCentral() }
+          dependencies {
+            implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' // 3.0.2 → 3.0.3に変更
+            compileOnly 'org.projectlombok:lombok:1.18.28'
+            annotationProcessor 'org.projectlombok:lombok:1.18.28'
+            implementation 'org.springframework.boot:spring-boot-starter'
+            implementation 'org.springframework.boot:spring-boot-starter-web'
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+          }
+            
+          java {
+          sourceCompatibility = JavaVersion.VERSION_17
+          targetCompatibility = JavaVersion.VERSION_17
+          }
+
+          bootJar {
+            enabled = true
+            archiveFileName = 'myapp.jar'
+          }
+          EOF
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          architecture: x64
+
+      - name: Build JAR
+        working-directory: app
+        run: ./gradlew clean build --no-daemon 
+
+      - name: List build output
+        working-directory: app
+        run: ls -R build
+      
+      - name: Confirm BUCKET variable
+        run: |
+          echo "Bucket: $BUCKET"
+
+      - name: Upload JAR to S3
+        run: aws s3 cp app/build/libs/ s3://$BUCKET/ --recursive
+
+  ansible:
+    needs: [terraform, build_upload]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Show repository structure
+        run: |
+           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+           ls -R $GITHUB_WORKSPACE
+    
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible
+        run: pip install ansible boto3
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Setup SSH directory
+        run: |
+          echo "HOME=$HOME"
+          ls -ld $HOME
+          if [ -f "$HOME/.ssh" ]; then mv $HOME/.ssh $HOME/.ssh.bak; fi
+          mkdir -p $HOME/.ssh
+          chmod 700 $HOME/.ssh
+        
+      - name: Run Ansible Playbook
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          S3_BUCKET: ${{ needs.terraform.outputs.s3_bucket }}
+        run: |
+          echo "$EC2_SSH_KEY" > key.pem
+          chmod 600 key.pem
+          ansible-playbook $GITHUB_WORKSPACE/Ansible/playbook.yml \
+            -i "${{ needs.terraform.outputs.ec2_ip }}," \
+            -u ec2-user \
+            --private-key key.pem \
+            --ssh-extra-args "-o StrictHostKeyChecking=no" \
+            --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }}"
+            
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
