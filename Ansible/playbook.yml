@@ -58,9 +58,8 @@
           [Service]
           User=ec2-user
           WorkingDirectory=/opt/myapp
-          ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar \
-            --server.address=0.0.0.0 \
-            --server.port=8080
+          Environment="JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto"
+          ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar --server.address=0.0.0.0 --server.port=8080
           SuccessExitStatus=143
           Restart=always
           RestartSec=10
@@ -85,14 +84,26 @@
       debug:
         var: ec2_ip
 
+    - name: Check service status
+      command: systemctl status myapp
+      register: svc_status
+      ignore_errors: true
+
+    - name: Show service logs for debug
+      debug:
+        var: svc_status.stdout_lines
+
+    - name: Pause before health check
+      pause:
+        seconds: 60
+
     - name: Wait for application to start
       uri:
         url: "http://{{ ec2_ip }}:8080"
         status_code: 200
-        timeout: 200
       register: app_check
-      retries: 10
-      delay: 10
+      retries: 15
+      delay: 15
       until: app_check.status == 200
 
     - name: Print confirmation
