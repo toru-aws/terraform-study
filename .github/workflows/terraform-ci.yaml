@@ -88,22 +88,6 @@ jobs:
           RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
           echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
 
-      - name: Get S3 bucket name
-        id: get-bucket
-        shell: bash
-        run: |
-          echo "Extracting S3 bucket name..."
-          echo "Terraform binary path:"
-          which terraform
-          terraform version
-          BUCKET=$(terraform output -raw springboot_bucket_name | tr -d '\r\n' | xargs)
-          echo "Detected bucket: '$BUCKET'"
-          echo "s3_bucket=$BUCKET" >> $GITHUB_OUTPUT
-
-      - name: Modify application.properties
-        run: |
-          sed -i -e "s|jdbc:mysql://localhost:3306/awsstudy|jdbc:mysql://${{ needs.terraform.outputs.rds_endpoint }}:3306/awsstudy|g" app/src/main/resources/application.properties
-
   build_upload:
     runs-on: ubuntu-latest
     needs: terraform
@@ -119,6 +103,11 @@ jobs:
 
       - name: Clone Spring Boot App
         run: git clone https://github.com/koujienami/aws-study.git app
+
+      - name: Modify application.properties
+        working-directory: app
+        run: |
+          sed -i -e "s|jdbc:mysql://localhost:3306/awsstudy|jdbc:mysql://${{ needs.terraform.outputs.rds_endpoint }}:3306/awsstudy|g" src/main/resources/application.properties
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
