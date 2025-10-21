@@ -89,7 +89,7 @@
       uri:
         url: "http://{{ ec2_ip }}:8080"
         status_code: 200
-        timeout: 60
+        timeout: 300
       register: app_check
       retries: 10
       delay: 10
