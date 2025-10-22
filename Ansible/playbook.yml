@@ -47,9 +47,12 @@
         mode: get
         region: ap-northeast-1
 
+    - name: Update all packages and refresh repos
+      command: dnf update -y
+
     - name: Ensure MySQL client is installed
       package:
-        name: mariadb
+        name: mariadb105
         state: present
 
     - name: Extract create.sql from JAR
