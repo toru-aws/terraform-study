@@ -13,12 +13,12 @@
 
   tasks:
     - name: Ensure Java 17 is installed
-      dnf:
+      package:
         name: java-17-amazon-corretto-devel.x86_64
         state: present
     
     - name: Install python3-pip on EC2
-      dnf:
+      package:
         name: python3-pip
         state: present
 
@@ -46,7 +46,31 @@
         dest: /opt/myapp/myapp.jar
         mode: get
         region: ap-northeast-1
-  
+
+    - name: Ensure unzip is installed
+      package:
+        name: unzip
+        state: present
+
+    - name: Extract create.sql from JAR
+      command: "jar xf /opt/myapp/myapp.jar aws-study/src/main/resources/create.sql"
+      args:
+        chdir: /opt/myapp
+
+    - name: Ensure MySQL client is installed
+      package:
+        name: mysql
+        state: present
+
+    - name: Run SQL on RDS
+      command: >
+        mysql
+        -h {{ rds_endpoint }}
+        -u {{ DB_USERNAME }}
+        -p{{ DB_PASSWORD }}
+        awsstudy < /opt/myapp/aws-study/src/main/resources/create.sql
+      no_log: true
+
     - name: Create systemd service for Spring Boot
       copy:
         dest: /etc/systemd/system/myapp.service

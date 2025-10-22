@@ -239,8 +239,8 @@ jobs:
             -u ec2-user \
             --private-key key.pem \
             --ssh-extra-args "-o StrictHostKeyChecking=no" \
-            --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }}"
-            
+            --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }} rds_endpoint=${{ needs.terraform.outputs.rds_endpoint }} DB_USERNAME=${{ secrets.DB_USERNAME }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} S3_BUCKET=${{ needs.terraform.outputs.s3_bucket }}"
+          
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
