@@ -209,6 +209,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install pip3
+        run: |
+          python -m ensurepip --upgrade
+          python -m pip install --upgrade pip
+
       - name: Install MySQL Python modules
         run: |
           pip3 install PyMySQL mysqlclient
