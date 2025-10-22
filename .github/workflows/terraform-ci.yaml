@@ -150,11 +150,12 @@ jobs:
           }
           repositories { mavenCentral() }
           dependencies {
-            implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' // 3.0.2 → 3.0.3に変更
+            implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
             compileOnly 'org.projectlombok:lombok:1.18.28'
             annotationProcessor 'org.projectlombok:lombok:1.18.28'
             implementation 'org.springframework.boot:spring-boot-starter'
             implementation 'org.springframework.boot:spring-boot-starter-web'
+            implementation 'mysql:mysql-connector-java:8.0.33'
             testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
             
