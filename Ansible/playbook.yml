@@ -47,20 +47,15 @@
         mode: get
         region: ap-northeast-1
 
-    - name: Ensure unzip is installed
+    - name: Ensure MySQL client is installed
       package:
-        name: unzip
+        name: mariadb
         state: present
 
     - name: Extract create.sql from JAR
-      command: "jar xf /opt/myapp/myapp.jar aws-study/src/main/resources/create.sql"
+      command: "jar xf /opt/myapp/myapp.jar BOOT-INF/classes/create.sql"
       args:
         chdir: /opt/myapp
-
-    - name: Ensure MySQL client is installed
-      package:
-        name: mysql
-        state: present
 
     - name: Run SQL on RDS
       command: >
