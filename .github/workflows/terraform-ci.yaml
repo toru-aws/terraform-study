@@ -209,6 +209,10 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install MySQL Python modules
+        run: |
+          pip3 install PyMySQL mysqlclient
+
       - name: Install Ansible
         run: pip install ansible boto3
       
