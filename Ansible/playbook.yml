@@ -19,14 +19,10 @@
         state: present
     
     - name: Ensure MySQL Python modules are installed
-      pip:
-        name:
-          - PyMySQL
-          - mysqlclient
-        executable: pip3
-        state: present
-        environment:
-          ansible_python_interpreter: /usr/bin/python3
+      shell: |
+        export ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3
+        pip3 install PyMySQL mysqlclient
+      become: true
 
     - name: Update all packages and refresh repos
       command: dnf update -y
