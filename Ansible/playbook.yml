@@ -21,7 +21,6 @@
     - name: Ensure MySQL Python modules are installed
       shell: |
         export ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3
-        pip3 install PyMySQL mysqlclient
       become: true
 
     - name: Update all packages and refresh repos
@@ -59,7 +58,7 @@
 
     - name: Ensure MySQL client is installed
       package:
-        name: mariadb105
+        name: mysql-client
         state: present
 
     - name: Extract create.sql from JAR
