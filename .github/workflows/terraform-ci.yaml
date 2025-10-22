@@ -212,6 +212,9 @@ jobs:
       - name: Install Ansible
         run: pip install ansible boto3
       
+      - name: Install community.mysql collection
+        run: ansible-galaxy collection install community.mysql
+        
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:

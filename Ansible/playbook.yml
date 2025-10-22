@@ -12,6 +12,9 @@
   become: true
 
   tasks:
+    - name: Update all packages and refresh repos
+      command: dnf update -y
+
     - name: Ensure Java 17 is installed
       package:
         name: java-17-amazon-corretto-devel.x86_64
@@ -47,9 +50,6 @@
         mode: get
         region: ap-northeast-1
 
-    - name: Update all packages and refresh repos
-      command: dnf update -y
-
     - name: Ensure MySQL client is installed
       package:
         name: mariadb105
@@ -60,13 +60,21 @@
       args:
         chdir: /opt/myapp
 
+    - name: Ensure awsstudy database exists
+      community.mysql.mysql_db:
+        name: awsstudy
+        state: present
+        login_host: "{{ rds_endpoint }}"
+        login_user: "{{ DB_USERNAME }}"
+        login_password: "{{ DB_PASSWORD }}"
+
     - name: Run SQL on RDS
       command: >
         mysql
         -h {{ rds_endpoint }}
         -u {{ DB_USERNAME }}
         -p{{ DB_PASSWORD }}
-        awsstudy < /opt/myapp/aws-study/src/main/resources/create.sql
+        awsstudy < /opt/myapp/BOOT-INF/classes/create.sql
       no_log: true
 
     - name: Create systemd service for Spring Boot
