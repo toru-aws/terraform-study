@@ -31,7 +31,7 @@
           - PyMySQL
         executable: pip3
 
-    # --- OSアップデート & Java ---
+    # --- OSアップデート&Java ---
     - name: Update all packages and refresh repos
       command: dnf update -y
 
@@ -40,7 +40,7 @@
         name: java-17-amazon-corretto-devel.x86_64
         state: present
 
-    # --- MySQL クライアント ---
+    # --- MySQLクライアント ---
     - name: Add MySQL official repository
       command: >
         dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm
@@ -69,7 +69,7 @@
         mode: get
         region: ap-northeast-1
 
-    # --- JAR から SQL 抽出 ---
+    # --- JARからSQL抽出 ---
     - name: Extract create.sql from JAR
       command: "jar xf /opt/myapp/myapp.jar BOOT-INF/classes/create.sql"
       args:
@@ -141,7 +141,6 @@
         enabled: yes
         state: started
 
-    # --- デバッグ ---
     - name: Debug ec2_ip value
       debug:
         var: ec2_ip
