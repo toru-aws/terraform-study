@@ -32,7 +32,7 @@
 
     - name: Ensure MySQL client is installed
       command: >
-        dnf -y install mysql mysql-community-client
+        dnf -y install mysql-community-client
 
     - name: Install AWS Python SDK on EC2
       pip:
@@ -58,11 +58,6 @@
         dest: /opt/myapp/myapp.jar
         mode: get
         region: ap-northeast-1
-
-    - name: Ensure MySQL client is installed
-      package:
-        name: mysql-client
-        state: present
 
     - name: Extract create.sql from JAR
       command: "jar xf /opt/myapp/myapp.jar BOOT-INF/classes/create.sql"
