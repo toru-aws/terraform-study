@@ -12,12 +12,26 @@
   become: true
 
   tasks:
+    # --- Python 関連 ---
     - name: Install pip3 if not installed
-      become: true
       package:
         name: python3-pip
         state: present
     
+    - name: Install AWS Python SDK on EC2
+      pip:
+        name:
+          - boto3
+          - botocore
+        executable: pip3
+
+    - name: Install Python MySQL library
+      pip:
+        name:
+          - PyMySQL
+        executable: pip3
+
+    # --- OSアップデート & Java ---
     - name: Update all packages and refresh repos
       command: dnf update -y
 
@@ -26,6 +40,7 @@
         name: java-17-amazon-corretto-devel.x86_64
         state: present
 
+    # --- MySQL クライアント ---
     - name: Add MySQL official repository
       command: >
         dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm
@@ -34,13 +49,7 @@
       command: >
         dnf -y install mysql-community-client
 
-    - name: Install AWS Python SDK on EC2
-      pip:
-         name:
-           - boto3
-           - botocore
-         executable: pip3
-      
+    # --- アプリケーションディレクトリ ---
     - name: Create application directory
       file:
         path: /opt/myapp
@@ -51,6 +60,7 @@
       debug:
         msg: "AWS_DEFAULT_REGION={{ lookup('env','AWS_DEFAULT_REGION') }}"
 
+    # --- JAR ダウンロード ---
     - name: Download JAR from S3
       amazon.aws.aws_s3:
         bucket: "{{ lookup('env', 'S3_BUCKET') }}"
@@ -59,11 +69,13 @@
         mode: get
         region: ap-northeast-1
 
+    # --- JAR から SQL 抽出 ---
     - name: Extract create.sql from JAR
       command: "jar xf /opt/myapp/myapp.jar BOOT-INF/classes/create.sql"
       args:
         chdir: /opt/myapp
 
+    # --- データベース作成 ---
     - name: Ensure awsstudy database exists
       community.mysql.mysql_db:
         name: awsstudy
@@ -72,6 +84,7 @@
         login_user: "{{ DB_USERNAME }}"
         login_password: "{{ DB_PASSWORD }}"
 
+    # --- SQL 実行 ---
     - name: Run SQL on RDS
       command: >
         mysql
@@ -81,6 +94,7 @@
         awsstudy < /opt/myapp/BOOT-INF/classes/create.sql
       no_log: true
 
+    # --- systemd サービス作成 ---
     - name: Create systemd service for Spring Boot
       copy:
         dest: /etc/systemd/system/myapp.service
@@ -114,6 +128,7 @@
         enabled: yes
         state: started
 
+    # --- デバッグ ---
     - name: Debug ec2_ip value
       debug:
         var: ec2_ip
@@ -136,7 +151,7 @@
         url: "http://{{ ec2_ip }}:8080"
         status_code: 200
       register: app_check
-      retries: 10
+      retries: 5
       delay: 15
       until: app_check.status == 200
 
