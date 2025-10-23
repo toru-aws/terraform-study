@@ -76,8 +76,9 @@
         chdir: /opt/myapp
 
     # --- データベース作成 ---
-    - debug:
-      var: rds_endpoint
+    - name: Debug RDS endpoint
+      debug:
+        var: rds_endpoint
 
     - name: Ensure awsstudy database exists
       community.mysql.mysql_db:
