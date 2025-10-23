@@ -18,14 +18,14 @@
         name: python3-pip
         state: present
     
-    - name: Ensure MySQL Python modules are installed
-      shell: |
-        export ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3
-      become: true
-
     - name: Update all packages and refresh repos
       command: dnf update -y
 
+    - name: Ensure MySQL client is installed
+      package:
+        name: mariadb
+        state: present
+        
     - name: Ensure Java 17 is installed
       package:
         name: java-17-amazon-corretto-devel.x86_64
