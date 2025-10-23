@@ -99,14 +99,13 @@
 
     # --- SQL 実行 ---
     - name: Run SQL on RDS
-      command: >
+      shell: >
         mysql
         -h {{ rds_host }}
         -P {{ rds_port }}
         -u {{ DB_USERNAME }}
         -p{{ DB_PASSWORD }}
         awsstudy < /opt/myapp/BOOT-INF/classes/create.sql
-      no_log: true
 
     # --- systemd サービス作成 ---
     - name: Create systemd service for Spring Boot
