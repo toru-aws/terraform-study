@@ -74,26 +74,28 @@
       command: "jar xf /opt/myapp/myapp.jar BOOT-INF/classes/create.sql"
       args:
         chdir: /opt/myapp
-
-    # --- データベース作成 ---
-    - name: Debug RDS endpoint
-      debug:
-        var: rds_endpoint
-
-    - name: Ensure awsstudy database exists
-      community.mysql.mysql_db:
-        name: awsstudy
-        state: present
-        login_host: "{{ rds_endpoint }}"
-        login_port: 3306
-        login_user: "{{ DB_USERNAME }}"
-        login_password: "{{ DB_PASSWORD }}"
     
+        
     # --- RDS ホストとポートを分割 ---
     - name: Split RDS endpoint into host and port
       set_fact:
         rds_host: "{{ rds_endpoint.split(':')[0] }}"
         rds_port: "{{ rds_endpoint.split(':')[1]|int }}"
+
+    # --- デバッグ用 ---
+    - name: Debug RDS endpoint
+      debug:
+        var: rds_endpoint
+
+    # --- データベース作成 ---
+    - name: Ensure awsstudy database exists
+      community.mysql.mysql_db:
+        name: awsstudy
+        state: present
+        login_host: "{{ rds_host }}"
+        login_port: "{{ rds_port }}"
+        login_user: "{{ DB_USERNAME }}"
+        login_password: "{{ DB_PASSWORD }}"
 
     # --- SQL 実行 ---
     - name: Run SQL on RDS
