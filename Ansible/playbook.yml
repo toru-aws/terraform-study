@@ -85,14 +85,22 @@
         name: awsstudy
         state: present
         login_host: "{{ rds_endpoint }}"
+        login_port: 3306
         login_user: "{{ DB_USERNAME }}"
         login_password: "{{ DB_PASSWORD }}"
+    
+    # --- RDS ホストとポートを分割 ---
+    - name: Split RDS endpoint into host and port
+      set_fact:
+        rds_host: "{{ rds_endpoint.split(':')[0] }}"
+        rds_port: "{{ rds_endpoint.split(':')[1]|int }}"
 
     # --- SQL 実行 ---
     - name: Run SQL on RDS
       command: >
         mysql
-        -h {{ rds_endpoint }}
+        -h {{ rds_host }}
+        -P {{ rds_port }}
         -u {{ DB_USERNAME }}
         -p{{ DB_PASSWORD }}
         awsstudy < /opt/myapp/BOOT-INF/classes/create.sql
