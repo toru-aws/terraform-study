@@ -150,11 +150,12 @@ jobs:
           }
           repositories { mavenCentral() }
           dependencies {
-            implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' // 3.0.2 → 3.0.3に変更
+            implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
             compileOnly 'org.projectlombok:lombok:1.18.28'
             annotationProcessor 'org.projectlombok:lombok:1.18.28'
             implementation 'org.springframework.boot:spring-boot-starter'
             implementation 'org.springframework.boot:spring-boot-starter-web'
+            implementation 'mysql:mysql-connector-java:8.0.33'
             testImplementation 'org.springframework.boot:spring-boot-starter-test'
           }
             
@@ -208,9 +209,17 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install pip3
+        run: |
+          python -m ensurepip --upgrade
+          python -m pip install --upgrade pip
+
       - name: Install Ansible
         run: pip install ansible boto3
       
+      - name: Install community.mysql collection
+        run: ansible-galaxy collection install community.mysql
+        
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -238,8 +247,9 @@ jobs:
             -u ec2-user \
             --private-key key.pem \
             --ssh-extra-args "-o StrictHostKeyChecking=no" \
-            --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }}"
-            
+            --extra-vars "ec2_ip=${{ needs.terraform.outputs.ec2_ip }} rds_endpoint=${{ needs.terraform.outputs.rds_endpoint }} DB_USERNAME=${{ secrets.DB_USERNAME }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} S3_BUCKET=${{ needs.terraform.outputs.s3_bucket }}"
+          
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
+  
