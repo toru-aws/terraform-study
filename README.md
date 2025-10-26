@@ -1,32 +1,29 @@
-# Terraform + Ansible によるAWS環境の完全自動構築（CI/CD対応）
+README.md
 
-このプロジェクトは、**Terraform** と **Ansible** を組み合わせて  
-AWS環境構築からアプリケーションデプロイまでを **Push一つで完全自動化** した学習成果物です。
-GitHubへのPushをトリガーとして、インフラ構築からアプリケーション起動確認まで自動実行されます。
-CI/CD パイプラインには **GitHub Actions** を使用し、  
-1. Terraformによるリソース構築
-2. Spring Boot アプリのビルド・S3アップロード
-3. AnsibleによるEC2への自動デプロイ  
-までの一連の流れとなっています。
-最終的には **ブラウザからWebアプリケーションの動作の確認**　まで行うこと
+## Terraform + Ansible によるAWS環境の完全自動構築（CI/CD対応）
+
+このプロジェクトは、**Terraform** と **Ansible** を組み合わせて、AWS環境構築からアプリケーションデプロイまでを **Push一つで完全自動化** した学習成果物です。  
+**GitHub Actions** によるCI/CDパイプラインで、インフラ構築からアプリ起動確認、ブラウザ上での動作確認までを自動実行します。
+
 ---
 
 ## 概要
 
 Terraformを使用して、以下のAWSリソースを自動構築しました。
 
-- VPC（CIDR: 10.0.0.0/16）
-- Public / Private サブネット（2つのAZに配置）
-- Internet Gateway / Route Table
-- EC2（Amazon Linux 2, t2.micro）
-- RDS（MySQL 8.0.39）
-- ALB（Application Load Balancer）およびターゲットグループ
-- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）
-- CloudWatch（メトリクス、アラーム）
-- SNS（メール通知設定）
-- WAF（WebACL）と WAF ログの CloudWatch Logs 連携
-- IAM ロール（WAF ログ送信用等）
-- S3(Backend用/ JARfile用)
+- VPC（CIDR: 10.0.0.0/16）  
+- Public / Private サブネット（2つのAZに配置）  
+- InternetGateway / RouteTable  
+- EC2（Amazon Linux 2, t2.micro）  
+- RDS（MySQL 8.0.39）  
+- ALB（Application Load Balancer）およびターゲットグループ  
+- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）  
+- CloudWatch（メトリクス、アラーム）  
+- SNS（メール通知設定）  
+- WAF（WebACL + CloudWatch Logs連携）  
+- IAM ロール（WAF ログ送信用等）  
+- S3（Backend用 / アプリJARファイル格納用）
+
 ---
 
 ## 使用技術
@@ -45,25 +42,13 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
 | DB | MySQL 8.0.39 |
 
 ---
-
-## 構成概要：  
-1. GitHubへのPushをトリガーにCI/CD実行  
-2. TerraformでAWSリソースを自動構築  
-3. 出力値（EC2 IP / RDS Endpoint / S3 Bucket名）を後続ジョブへ引き渡し  
-4. Spring BootアプリをClone・ビルドしS3へアップロード
-5. AnsibleでEC2へJARを自動配置・DB初期化・サービス起動  
-6. HTTP 200応答で稼働確認
-7. ブラウザからWebアプリケーションの動作の確認
-
----
 ## リポジトリ構成
 
 ```bash
 terraform-study/
-├── .github/
-│   └── workflows/
-│       └── terraform-ci.yaml    # Terraform用CI/CDワークフロー
-│
+├── .github/workflows/
+│   └──  terraform-ci.yaml    # Terraform用CI/CDワークフロー
+│    
 ├── ansible/
 │   └── playbook.yml   # Ansible構成管理プレイブック
 │
@@ -112,20 +97,28 @@ terraform-study/
 ```
 ---
 
-## TerraformによるAWSリソース構築
+## 構成と動作概要
 
-- VPC（CIDR: 10.0.0.0/16）  
-- Public / Private サブネット（2つのAZに配置）  
-- InternetGateway / RouteTable  
-- EC2（Amazon Linux 2, t2.micro）  
-- RDS（MySQL 8.0.39）  
-- ALB（Application Load Balancer）およびターゲットグループ  
-- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）  
-- CloudWatch（メトリクス、アラーム）  
-- SNS（メール通知設定）  
-- WAF（WebACL + CloudWatch Logs連携）  
-- IAM ロール（WAF ログ送信用等）  
-- S3（Backend用 / アプリJARファイル格納用）
+1. GitHubへのPushをトリガーにCI/CDを自動実行  
+2. **Terraform** によりAWSリソースを構築  
+   - VPC / Subnet / EC2 / RDS / ALB / WAF / CloudWatch / SNS などを自動生成  
+3. **出力値（EC2 IP・RDS Endpoint・S3 Bucket名）** を後続ジョブに渡す  
+4. **Spring Bootアプリ** をClone → Gradleでビルド → S3へアップロード  
+5. **Ansible** がEC2へ接続し、JAR配置・DB初期化・アプリ起動を自動化  
+6. HTTP 200応答を確認し、アプリケーションが正常稼働していることを検証  
+7. 最終的に、ブラウザから `http://<EC2_IP>:8080` にアクセスして動作確認
+
+---
+
+## ✅ 確認項目
+
+| 項目 | 確認内容 |
+|------|-----------|
+| GitHub Actions | 全ジョブ（terraform, build_upload, ansible）が成功 |
+| AWSリソース | EC2 / RDS / S3 / ALB / WAF / SNS / CloudWatch が作成済み |
+| S3バケット | アプリJARファイルが格納されていること |
+| EC2 | Java 17・MySQL Client・Spring Bootアプリが稼働していること |
+| HTTP疎通 | `http://<EC2_IP>:8080` へアクセスしステータス200を確認 |
 
 ---
 
@@ -150,53 +143,43 @@ terraform-study/
 | アプリ配置 | /opt/myapp にJARファイルをS3からダウンロード、SQLを抽出 |
 | DB初期化 | RDSへの接続確認後、データベース作成・SQL適用 |
 | サービス化 | systemd によりSpring Bootアプリを常駐化 |
-| 動作確認 | 8080ポートにHTTPアクセスし、ステータス200を確認 |
+| 動作確認 | 8080ポートにHTTPアクセスし、アプリ動作確認 |
 
 ---
 
 ## デプロイ手順
 
-1. `test`ブランチにPush  (手動)
-2. GitHub Actionsが自動でワークフローを起動  （自動）
-3. TerraformでAWSリソースを作成  （自動）
-4. Spring BootアプリをビルドしてS3へアップロード  （自動）
-5. AnsibleがEC2上にアプリをデプロイ・起動  （自動）
-6. 最終ステップでHTTP 200応答を確認（自動）
-7. ブラウザからWebアプリケーションの動作の確認
-
----
-
-## 動作確認
-
-| 確認項目 | 内容 |
-|-----------|------|
-| GitHub Actions | 全ジョブがオールグリーンで完了 |
-| Terraformリソース | EC2 / RDS / S3 / ALB / WAF / CloudWatch / SNS が作成されていることを確認 |
-| S3バケット | JARファイルがアップロードされていることを確認 |
-| EC2 | Java17, MySQL client, アプリが正常に稼働していることを確認 |
-| HTTP疎通 | `http://<EC2_IP>:8080` にアクセスし、アプリが起動していることを確認 |
+1. `test` ブランチに Push  
+2. GitHub Actions が自動でワークフロー実行  
+3. Terraform → Ansible の順で自動デプロイ  
+4. 完了後、ブラウザで `http://<EC2_IP>:8080` にアクセスし動作確認
 
 ---
 
 ## 学んだこと・工夫した点
 
-- **完全自動化の難しさと依存関係整理**  
-  多数のリソース・タスク・変数間依存を誤らずコード化する点に苦労。  
-  Ansible内で `--extra-vars` を使用する必要性を学び、CI/CD全体の変数フローを整理。  
+- **完全自動化の難しさと依存関係整理**
+  
+  多数のリソース・タスク・変数間依存を誤らずコード化する点に非常に苦労した。転職活動を終え次第、再度勉強したい。
+  
+- **デバッグタスクの活用**
+  
+  `debug` や `register` を駆使して、ジョブ間の出力値やファイルパスの動きを把握する経験を得た
+  実運用でもトラブルシュートに役立つと実感
 
-- **デバッグタスクの活用**  
-  `debug` や `register` を駆使して、ジョブ間の出力値やファイルパスの動きを把握。  
-  実運用でもトラブルシュートに役立つと実感。  
+- **環境変数とSecret管理の重要性**
+  
+  AWS資格情報やDB認証情報をGitHub Secretsで安全に扱う設計を学習した
 
-- **環境変数とSecret管理の重要性**  
-  AWS資格情報やDB認証情報をGitHub Secretsで安全に扱う設計を学習。  
+- **手動構築からコード化への移行経験**
+  
+  AWSマネジメントコンソールで行っていた構築手順を全てコード化し、再現性と効率性を実現する学習をした
 
-- **手動構築からコード化への移行体験**  
-  AWSマネジメントコンソールで行っていた構築手順を全てコード化し、再現性と効率性を実現。  
-
-- **インフラのコード化スキルの必要性**  
-  現場ではTerraformやAnsibleで構築を自動化することが一般的であると理解。  
-
+- **インフラのコード化スキルの必要性**
+  
+  現場ではCloudFormationやTerraformを用いて、Ansibleで構築を自動化することが一般的である意味が理解できた。
+  コード化するのは大変だが、AWSマネジメントコンソールでこれ以上のリソースを追加して環境構築をするであろう実務では、把握のしにくさ、間違ったときのFBの受けにくさ等があり限度があることを理解。
+  
 ---
 
 ## 今後の改善点
@@ -209,12 +192,13 @@ terraform-study/
 
 ---
 
-## ⚠️　備考・注意事項
+## ⚠️ 注意事項
 
-- 本プロジェクトは学習目的で構築していますが、**実務に近い構成と運用フロー**を意識して作成しています。  
-- Terraform / Ansible / GitHub Actions の組み合わせにより、AWS環境の構築からアプリのデプロイまでを完全自動化しています。  
-- 利用時はAWS課金とSecretsの管理に注意してください。
-- エラーが起きた際には必要に応じて、デバック処理をコードに入れて各項目のTask等を確認して解決してください。
+- AWS課金とSecrets管理には十分注意してください。  
+- エラー発生時は `debug` タスクなどを活用して原因を特定してください。
+- 環境変数化は以下のように使用すること
+
+---
 
 ## 環境変数化した変数一覧表
 
