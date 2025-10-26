@@ -187,12 +187,11 @@ terraform-study/
 
 ## 今後の改善点
 
-- Terraformの`variables.tf`を整理し、再利用性を向上
-- Terraformの出力をより汎用的なJSON形式で管理し、外部ツールとの連携を検討
-- Ansible Playbookの役割分割（role化）による保守性向上
-- CI/CDのブランチ戦略（`dev` / `staging` / `prod`）に対応したパイプライン設計
-- CloudWatch LogsとALBアクセスログの集約による運用監視の強化
-
+- Terraformの変数やモジュールを整理し、再利用性と保守性を向上
+- Terraformの出力を**JSON形式で管理**し、他ツールやスクリプトとの連携を容易にする  
+- Ansible Playbookをrole化やタスク分割で整理し、チーム開発でも扱いやすくする  
+- CloudWatch LogsやALBアクセスログを、集約・可視化して運用監視を強化
+  
 ---
 
 ## ⚠️ 注意事項
