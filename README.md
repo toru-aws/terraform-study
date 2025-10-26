@@ -2,6 +2,9 @@ README.md
 
 ## Terraform + Ansible によるAWS環境の完全自動構築（CI/CD対応）
 
+<img width="675" height="369" alt="スクリーンショット 2025-10-07 163900" src="https://github.com/user-attachments/assets/95a3bd18-b098-4779-afed-73d28d1a6d49" />
+
+
 このプロジェクトは、**Terraform** と **Ansible** を組み合わせて、AWS環境構築からアプリケーションデプロイまでを **Push一つで完全自動化** した学習成果物です。  
 **GitHub Actions** によるCI/CDパイプラインで、インフラ構築からアプリ起動確認、ブラウザ上での動作確認までを自動実行します。
 
