@@ -1,21 +1,32 @@
 # Terraform + Ansible によるAWS環境の完全自動構築（CI/CD対応）
 
 このプロジェクトは、**Terraform** と **Ansible** を組み合わせて  
-AWS環境構築からアプリケーションデプロイまでを **Push一つで完全自動化** した学習成果物です。  
+AWS環境構築からアプリケーションデプロイまでを **Push一つで完全自動化** した学習成果物です。
+GitHubへのPushをトリガーとして、インフラ構築からアプリケーション起動確認まで自動実行されます。
 CI/CD パイプラインには **GitHub Actions** を使用し、  
-Terraformによるリソース構築
-→ Spring Boot アプリのビルド・S3アップロード 
-→ AnsibleによるEC2への自動デプロイ  
-までの一連の流れを実現しています。
-
+1. Terraformによるリソース構築
+2. Spring Boot アプリのビルド・S3アップロード
+3. AnsibleによるEC2への自動デプロイ  
+までの一連の流れとなっています。
+最終的には **ブラウザからWebアプリケーションの動作の確認**　まで行うこと
 ---
 
 ## 概要
 
-Terraformを用いてCloudFormationで作成したAWSリソース構成を再現しつつ、  
-CI/CD用のS3バケットを追加して完全自動化を実現しました。  
-GitHubへのPushをトリガーとして、インフラ構築からアプリケーション起動確認まで自動実行されます。
+Terraformを使用して、以下のAWSリソースを自動構築しました。
 
+- VPC（CIDR: 10.0.0.0/16）
+- Public / Private サブネット（2つのAZに配置）
+- Internet Gateway / Route Table
+- EC2（Amazon Linux 2, t2.micro）
+- RDS（MySQL 8.0.39）
+- ALB（Application Load Balancer）およびターゲットグループ
+- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）
+- CloudWatch（メトリクス、アラーム）
+- SNS（メール通知設定）
+- WAF（WebACL）と WAF ログの CloudWatch Logs 連携
+- IAM ロール（WAF ログ送信用等）
+- S3(Backend用/ JARfile用)
 ---
 
 ## 使用技術
@@ -35,15 +46,14 @@ GitHubへのPushをトリガーとして、インフラ構築からアプリケ�
 
 ---
 
-## 構成図（Architecture）
-
-構成概要：  
+## 構成概要：  
 1. GitHubへのPushをトリガーにCI/CD実行  
 2. TerraformでAWSリソースを自動構築  
 3. 出力値（EC2 IP / RDS Endpoint / S3 Bucket名）を後続ジョブへ引き渡し  
-4. Spring BootアプリをClone・ビルドしS3へアップロード  
+4. Spring BootアプリをClone・ビルドしS3へアップロード
 5. AnsibleでEC2へJARを自動配置・DB初期化・サービス起動  
-6. 最後にHTTP 200応答で稼働確認  
+6. HTTP 200応答で稼働確認
+7. ブラウザからWebアプリケーションの動作の確認
 
 ---
 ## リポジトリ構成
@@ -52,12 +62,12 @@ GitHubへのPushをトリガーとして、インフラ構築からアプリケ�
 terraform-study/
 ├── .github/
 │   └── workflows/
-│       └── terraform-ci.yaml    # Terraform 用 CI/CD ワークフロー
+│       └── terraform-ci.yaml    # Terraform用CI/CDワークフロー
 │
 ├── ansible/
-│   └── playbook.yml   # Ansible 構成管理プレイブック
+│   └── playbook.yml   # Ansible構成管理プレイブック
 │
-├── modules/    # 各 AWS リソースをモジュール化
+├── modules/    # 各AWSリソースをモジュール化
 │   ├── vpc/
 │   │   ├── main.tf
 │   │   ├── outputs.tf
@@ -92,10 +102,12 @@ terraform-study/
 ├── providers.tf                     # プロバイダー設定
 ├── variables.tf                     # 変数定義
 ├── outputs.tf                       # 出力値定義
-├── terraform.tfvars.example         # サンプル変数ファイル
-├── versions.tf                      # Terraform バージョン指定
-├── .gitignore                       # Git 除外設定
+├── terraform.tfvars                 # サンプル変数ファイル
 ├── README.md                        # このファイル
+├── backend.tf
+├── main.tftest.hcl
+├── .gitignore                       # Git 除外設定
+├── .terraform.lock.hcl
 
 ```
 ---
@@ -123,9 +135,9 @@ terraform-study/
 
 | ジョブ名 | 内容 |
 |-----------|------|
-| **terraform** | Terraformの初期化、検証、リソース構築を実施。構築後にEC2 IP・RDS Endpoint・S3バケット名を出力。 |
-| **build_upload** | Spring Bootアプリを外部リポジトリからClone → GradleでJARビルド → S3へアップロード。 |
-| **ansible** | Ansible Playbookを実行し、EC2上にアプリ展開・DB初期化・サービス起動・HTTP応答確認まで自動化。 |
+| **terraform** | Terraformの初期化、検証、リソース構築を実施。構築後にEC2 IP・RDS Endpoint・S3バケット名を出力|
+| **build_upload** | Spring Bootアプリを外部リポジトリからClone → GradleでJARビルド → S3へアップロード |
+| **ansible** | Ansible Playbookを実行し、EC2上にアプリ展開・DB初期化・サービス起動・HTTP応答確認まで自動化 |
 
 ---
 
@@ -144,12 +156,13 @@ terraform-study/
 
 ## デプロイ手順
 
-1. `test`ブランチにPush  
-2. GitHub Actionsが自動でワークフローを起動  
-3. TerraformでAWSリソースを作成  
-4. Spring BootアプリをビルドしてS3へアップロード  
-5. AnsibleがEC2上にアプリをデプロイ・起動  
+1. `test`ブランチにPush  (手動)
+2. GitHub Actionsが自動でワークフローを起動  （自動）
+3. TerraformでAWSリソースを作成  （自動）
+4. Spring BootアプリをビルドしてS3へアップロード  （自動）
+5. AnsibleがEC2上にアプリをデプロイ・起動  （自動）
 6. 最終ステップでHTTP 200応答を確認（自動）
+7. ブラウザからWebアプリケーションの動作の確認
 
 ---
 
