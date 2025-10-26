@@ -1,22 +1,212 @@
-文言例
-terraform.tfvars の作成
+README.md
 
-cp terraform.tfvars.example 
-terraform.tfvars
+## Terraform + Ansible によるAWS環境の完全自動構築（CI/CD対応）
 
-terraform.tfvarsに実値を記入
-（機密情報を含むためリポジトリに追加しないでください）
+このプロジェクトは、**Terraform** と **Ansible** を組み合わせて、AWS環境構築からアプリケーションデプロイまでを **Push一つで完全自動化** した学習成果物です。  
+**GitHub Actions** によるCI/CDパイプラインで、インフラ構築からアプリ起動確認、ブラウザ上での動作確認までを自動実行します。
 
-必要変数（例）
+---
 
-db_username: DB のユーザー名（必須）
-db_password: DB のパスワード（必須, sensitive）
-key_name: EC2 用キーペア名（必須）
-notification_email: 通知先メール（必須）
-my_ip: SSH 許可 IP（例: x.x.x.x/32）
+## 概要
 
-注意事項
+Terraformを使用して、以下のAWSリソースを自動構築しました。
 
-terraform.tfvars は機密情報を含むのでコミットしないでください。terraform.tfvars.example を用意しています。
-SNS のメールは受信側で Confirm が必要です。Confirmed 状態を確認してください。
-誤って機密をコミットした場合は直ちに該当シークレットをローテーションし、履歴のクリーンアップを行ってください（担当: とおる）。
+- VPC（CIDR: 10.0.0.0/16）  
+- Public / Private サブネット（2つのAZに配置）  
+- InternetGateway / RouteTable  
+- EC2（Amazon Linux 2, t2.micro）  
+- RDS（MySQL 8.0.39）  
+- ALB（Application Load Balancer）およびターゲットグループ  
+- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）  
+- CloudWatch（メトリクス、アラーム）  
+- SNS（メール通知設定）  
+- WAF（WebACL + CloudWatch Logs連携）  
+- IAM ロール（WAF ログ送信用等）  
+- S3（Backend用 / アプリJARファイル格納用）
+
+---
+
+## 使用技術
+
+| カテゴリ | 使用技術 |
+|-----------|-----------|
+| インフラ構築 | Terraform 1.13.3 |
+| 構成管理・自動化 | Ansible 2.x |
+| CI/CD | GitHub Actions |
+| AWSサービス | VPC, EC2, RDS (MySQL), ALB, CloudWatch, SNS, WAF, IAM, S3 |
+| 開発環境 | VSCode / GitHub / PowerShell / AWS CLI |
+| OS | Amazon Linux 2 |
+| 言語・ランタイム | Java 17 (Amazon Corretto) |
+| ビルドツール | Gradle 8.11.1 |
+| フレームワーク | Spring Boot 3.2.2 |
+| DB | MySQL 8.0.39 |
+
+---
+## リポジトリ構成
+
+```bash
+terraform-study/
+├── .github/workflows/
+│   └──  terraform-ci.yaml    # Terraform用CI/CDワークフロー
+│    
+├── ansible/
+│   └── playbook.yml   # Ansible構成管理プレイブック
+│
+├── modules/    # 各AWSリソースをモジュール化
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   │
+│   ├── ec2/
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   │
+│   ├── rds/
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   │
+│   ├── alb/
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   │
+│   ├── waf/
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   │
+│   └── s3/
+│       ├── main.tf
+│       ├── outputs.tf
+│       └── variables.tf
+│
+├── main.tf                          # メイン構成ファイル
+├── providers.tf                     # プロバイダー設定
+├── variables.tf                     # 変数定義
+├── outputs.tf                       # 出力値定義
+├── terraform.tfvars                 # サンプル変数ファイル
+├── README.md                        # このファイル
+├── backend.tf
+├── main.tftest.hcl
+├── .gitignore                       # Git 除外設定
+├── .terraform.lock.hcl
+
+```
+---
+
+## 構成と動作概要
+
+1. GitHubへのPushをトリガーにCI/CDを自動実行  
+2. **Terraform** によりAWSリソースを構築  
+   - VPC / Subnet / EC2 / RDS / ALB / WAF / CloudWatch / SNS などを自動生成  
+3. **出力値（EC2 IP・RDS Endpoint・S3 Bucket名）** を後続ジョブに渡す  
+4. **Spring Bootアプリ** をClone → Gradleでビルド → S3へアップロード  
+5. **Ansible** がEC2へ接続し、JAR配置・DB初期化・アプリ起動を自動化  
+6. HTTP 200応答を確認し、アプリケーションが正常稼働していることを検証  
+7. 最終的に、ブラウザから `http://<EC2_IP>:8080` にアクセスして動作確認
+
+---
+
+## ✅ 確認項目
+
+| 項目 | 確認内容 |
+|------|-----------|
+| GitHub Actions | 全ジョブ（terraform, build_upload, ansible）が成功 |
+| AWSリソース | EC2 / RDS / S3 / ALB / WAF / SNS / CloudWatch が作成済み |
+| S3バケット | アプリJARファイルが格納されていること |
+| EC2 | Java 17・MySQL Client・Spring Bootアプリが稼働していること |
+| HTTP疎通 | `http://<EC2_IP>:8080` へアクセスしステータス200を確認 |
+
+---
+
+## GitHub Actions ワークフロー概要（terraform-ci.yaml）
+
+ワークフローは3ジョブで構成：
+
+| ジョブ名 | 内容 |
+|-----------|------|
+| **terraform** | Terraformの初期化、検証、リソース構築を実施。構築後にEC2 IP・RDS Endpoint・S3バケット名を出力|
+| **build_upload** | Spring Bootアプリを外部リポジトリからClone → GradleでJARビルド → S3へアップロード |
+| **ansible** | Ansible Playbookを実行し、EC2上にアプリ展開・DB初期化・サービス起動・HTTP応答確認まで自動化 |
+
+---
+
+## Ansible Playbook概要（playbook.yml）
+
+| 処理フェーズ | 実行内容 |
+|---------------|-----------|
+| 依存関係導入 | pip3 / boto3 / botocore / PyMySQL / community.mysql をインストール |
+| 環境設定 | OSアップデート、Java 17、MySQLクライアントを導入 |
+| アプリ配置 | /opt/myapp にJARファイルをS3からダウンロード、SQLを抽出 |
+| DB初期化 | RDSへの接続確認後、データベース作成・SQL適用 |
+| サービス化 | systemd によりSpring Bootアプリを常駐化 |
+| 動作確認 | 8080ポートにHTTPアクセスし、アプリ動作確認 |
+
+---
+
+## デプロイ手順
+
+1. `test` ブランチに Push  
+2. GitHub Actions が自動でワークフロー実行  
+3. Terraform → Ansible の順で自動デプロイ  
+4. 完了後、ブラウザで `http://<EC2_IP>:8080` にアクセスし動作確認
+
+---
+
+## 学んだこと・工夫した点
+
+- **完全自動化の難しさと依存関係整理**
+  
+  多数のリソース・タスク・変数間依存を誤らずコード化する点に非常に苦労した。転職活動を終え次第、再度勉強したい。
+  
+- **デバッグタスクの活用**
+  
+  `debug` や `register` を駆使して、ジョブ間の出力値やファイルパスの動きを把握する経験を得た
+  実運用でもトラブルシュートに役立つと実感
+
+- **環境変数とSecret管理の重要性**
+  
+  AWS資格情報やDB認証情報をGitHub Secretsで安全に扱う設計を学習した
+
+- **手動構築からコード化への移行経験**
+  
+  AWSマネジメントコンソールで行っていた構築手順を全てコード化し、再現性と効率性を実現する学習をした
+
+- **インフラのコード化スキルの必要性**
+  
+  現場ではCloudFormationやTerraformを用いて、Ansibleで構築を自動化することが一般的である意味が理解できた。
+  コード化するのは大変だが、AWSマネジメントコンソールでこれ以上のリソースを追加して環境構築をするであろう実務では、把握のしにくさ、間違ったときのFBの受けにくさ等があり限度があることを理解。
+  
+---
+
+## 今後の改善点
+
+- Terraformの`variables.tf`を整理し、再利用性を向上
+- Terraformの出力をより汎用的なJSON形式で管理し、外部ツールとの連携を検討
+- Ansible Playbookの役割分割（role化）による保守性向上
+- CI/CDのブランチ戦略（`dev` / `staging` / `prod`）に対応したパイプライン設計
+- CloudWatch LogsとALBアクセスログの集約による運用監視の強化
+
+---
+
+## ⚠️ 注意事項
+
+- AWS課金とSecrets管理には十分注意してください。  
+- エラー発生時は `debug` タスクなどを活用して原因を特定してください。
+- 環境変数化は以下のように使用すること
+
+---
+
+## 環境変数化した変数一覧表
+
+| 変数名                  | 設定例                     | 説明         | 必須 | 備考              |
+| -------------------- | ----------------------- | ---------- | -- | --------------- |
+| `db_username`        | `"my_user"`        | DB のユーザー名  | ✅  |                 |
+| `db_password`        | `"my_password"`    | DB のパスワード  | ✅  | sensitive       |
+| `key_name`           | `"my-ec2-key"`          | EC2 用キーペア名 | ✅  |                 |
+| `notification_email` | `"my@gmail.com"` | 通知先メールアドレス | ✅  | SNS 通知確認が必要     |
+| `my_ip`              | `"123.45.67.89/32"`     | SSH 許可 IP  | ✅  | 例: `x.x.x.x/32` |
+
