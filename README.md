@@ -28,24 +28,26 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
 - PublicRouteTable / PrivateRoutetable
 - EC2（Amazon Linux 2, t2.micro）
 - RDS
-  ```
+  ```bash
   identifier              = "aws-study-rds"
   engine                  = "mysql"
   engine_version          = "8.0.39"
   instance_class          = "db.t4g.micro"
   allocated_storage       = 20
 - ALBターゲットグループ
-  ```  
+  ```bash
   name     = "aws-study-tg"
   port     = 8080
   protocol = "HTTP"
 - ALBリスナー
-  ```
+  ```bash
   port              = 80
   protocol          = "HTTP"
   ```
 - セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）
-  ``` ALB
+
+**ALB**
+```bash
   ingress
     from_port   = 80
     to_port     = 80
@@ -57,9 +59,10 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-　
-  ``` EC2
-　ingress 
+```
+**EC2**
+```bash
+　ingress  
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -83,8 +86,9 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
 ```
-  ```RDS
-　ingress 
+**RDS**
+```bash
+ ingress 
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
@@ -94,9 +98,10 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"] 
-   ```
-- CloudWatch（メトリクス、アラーム）
 ```
+
+- CloudWatch（メトリクス、アラーム）
+```bash
   alarm_name          = "EC2HighCPUAlarm"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
@@ -107,14 +112,12 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
   threshold           = 70
   alarm_description   = "実運用を意識して70％に変更"
 ```
-  ```
 - SNS（メール通知設定）
    protocol  = "email"
-  
 - WAF（WebACL + CloudWatch Logs連携）
 - IAM ロール（WAFログ送信用等）  
 - S3（Backend用 / アプリJARファイル格納用）
-```
+
 ---
 
 ## 使用技術
