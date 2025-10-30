@@ -13,20 +13,108 @@ README.md
 ## 概要
 
 Terraformを使用して、以下のAWSリソースを自動構築しました。
+固定値のみ設定値を記載しています。
 
 - VPC（CIDR: 10.0.0.0/16）  
-- Public / Private サブネット（2つのAZに配置）  
-- InternetGateway / RouteTable  
-- EC2（Amazon Linux 2, t2.micro）  
-- RDS（MySQL 8.0.39）  
-- ALB（Application Load Balancer）およびターゲットグループ  
-- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）  
-- CloudWatch（メトリクス、アラーム）  
-- SNS（メール通知設定）  
-- WAF（WebACL + CloudWatch Logs連携）  
-- IAM ロール（WAF ログ送信用等）  
-- S3（Backend用 / アプリJARファイル格納用）
+- Public subnets
+  ```
+  AZ: ap-northeast-1a, CIDR: 10.0.1.0/24
+  AZ: ap-northeast-1c, CIDR: 10.0.3.0/24
+- Private subnets
+  ```
+  AZ: ap-northeast-1a, CIDR: 10.0.2.0/24
+  AZ: ap-northeast-1c, CIDR: 10.0.4.0/24
+- InternetGateway　
+- PublicRouteTable / PrivateRoutetable
+- EC2（Amazon Linux 2, t2.micro）
+- RDS
+  ```
+  identifier              = "aws-study-rds"
+  engine                  = "mysql"
+  engine_version          = "8.0.39"
+  instance_class          = "db.t4g.micro"
+  allocated_storage       = 20
+- ALBターゲットグループ
+  ```  
+  name     = "aws-study-tg"
+  port     = 8080
+  protocol = "HTTP"
+- ALBリスナー
+  ```
+  port              = 80
+  protocol          = "HTTP"
+  ```
+- セキュリティグループ設定（SSH, HTTP, 8080, RDSアクセス等）
+  ``` ALB
+  ingress
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
 
+  egress
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+　
+  ``` EC2
+　ingress 
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+
+  ingress
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+
+  ingress
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+
+  egress 
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+```
+  ```RDS
+　ingress 
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+
+  egress
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"] 
+   ```
+- CloudWatch（メトリクス、アラーム）
+```
+  alarm_name          = "EC2HighCPUAlarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "実運用を意識して70％に変更"
+```
+  ```
+- SNS（メール通知設定）
+   protocol  = "email"
+  
+- WAF（WebACL + CloudWatch Logs連携）
+- IAM ロール（WAFログ送信用等）  
+- S3（Backend用 / アプリJARファイル格納用）
+```
 ---
 
 ## 使用技術
