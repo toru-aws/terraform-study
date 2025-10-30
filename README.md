@@ -114,6 +114,7 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
   alarm_description   = "実運用を意識して70％に変更"
 ```
 - SNS（メール通知設定）
+  ```bash
    protocol  = "email"
 - WAF（WebACL + CloudWatch Logs連携）
 - IAM ロール（WAFログ送信用等）  
