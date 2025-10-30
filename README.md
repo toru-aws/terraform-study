@@ -121,6 +121,11 @@ Terraformを使用して、以下のAWSリソースを自動構築しました�
 - S3（Backend用 / アプリJARファイル格納用）
 
 ---
+## インフラ構成図
+
+<img width="1208" height="789" alt="スクリーンショット 2025-10-30 163852" src="https://github.com/user-attachments/assets/1459f229-e421-490c-b7ab-d429203a784d" />
+
+---
 
 ## 使用技術
 
