@@ -14,13 +14,15 @@ README.md
 
 Terraformを使用して、以下のAWSリソースを自動構築しました。
 
-- VPC（CIDR: 10.0.0.0/16）  
+- VPC
+  ```bash
+  CIDR: 10.0.0.0/16  
 - Public subnets
-  ```
+  ```bash
   AZ: ap-northeast-1a, CIDR: 10.0.1.0/24
   AZ: ap-northeast-1c, CIDR: 10.0.3.0/24
 - Private subnets
-  ```
+  ```bash
   AZ: ap-northeast-1a, CIDR: 10.0.2.0/24
   AZ: ap-northeast-1c, CIDR: 10.0.4.0/24
 - InternetGateway　
