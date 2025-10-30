@@ -13,7 +13,6 @@ README.md
 ## 概要
 
 Terraformを使用して、以下のAWSリソースを自動構築しました。
-固定値のみ設定値を記載しています。
 
 - VPC（CIDR: 10.0.0.0/16）  
 - Public subnets
